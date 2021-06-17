@@ -63,29 +63,26 @@ impl PathBuilder {
         &self.0.iter().enumerate().for_each(|(i, bpoint)| {
             let point = Point::from(bpoint);
 
+            let command = match i {
+                0 => "M",
+                _ => "L",
+            };
+
             match bpoint.radius {
                 None => {
-                    let command = match i {
-                        0 => "M",
-                        _ => "L",
-                    };
-
                     data.push_str(&format!("{}{} ", command, point));
                 }
                 Some(radius) => {
-                    // TODO first point should always be M (move)
-                    // and if the first point is rounded, calculate b/t last point
-                    if i != 0 && (i != self.0.len() - 1) {
-                        let prev_bpoint = &self.0[i - 1];
-                        let pt = point_along_line(&point, &Point::from(prev_bpoint), radius);
-                        data.push_str(&format!("L{} ", pt));
+                    let prev_index = if i == 0 { self.0.len() - 1 } else { i - 1 };
+                    let next_index = if i == self.0.len() - 1 { 0 } else { i + 1 };
 
-                        let next_bpoint = &self.0[i + 1];
-                        let pt2 = point_along_line(&point, &Point::from(next_bpoint), radius);
-                        data.push_str(&format!("A {},{} 0 0 1 {} ", radius, radius, pt2));
-                    } else {
-                        unimplemented!("first or last element with radius needs to wrap to calculate intermediate points");
-                    }
+                    let prev_bpoint = &self.0[prev_index];
+                    let pt = point_along_line(&point, &Point::from(prev_bpoint), radius);
+                    data.push_str(&format!("{}{} ", command, pt));
+
+                    let next_bpoint = &self.0[next_index];
+                    let pt2 = point_along_line(&point, &Point::from(next_bpoint), radius);
+                    data.push_str(&format!("A {},{} 0 0 1 {} ", radius, radius, pt2));
                 }
             }
         });
@@ -119,14 +116,50 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
+    fn without_start_end_radii() {
         let actual = PathBuilder::new()
             .add(Point(0., 0.))
             .add_r(Point(50., 0.), 4.)
             .add_r(Point(50., 50.), 8.)
             .add(Point(0., 50.))
             .close();
-        let expected = "L20,20 L50,50 Z";
+        let expected = "M0,0 L46,0 A 4,4 0 0 1 50,4 L50,42 A 8,8 0 0 1 42,50 L0,50 Z";
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn with_start_radius() {
+        let actual = PathBuilder::new()
+            .add_r(Point(0., 0.), 4.)
+            .add_r(Point(50., 0.), 4.)
+            .add_r(Point(50., 50.), 8.)
+            .add(Point(0., 50.))
+            .close();
+        let expected = "TODO";
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn with_end_radius() {
+        let actual = PathBuilder::new()
+            .add(Point(0., 0.))
+            .add_r(Point(50., 0.), 4.)
+            .add_r(Point(50., 50.), 8.)
+            .add_r(Point(0., 50.), 4.)
+            .close();
+        let expected = "TODO";
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn with_start_end_radii() {
+        let actual = PathBuilder::new()
+            .add_r(Point(0., 0.), 4.)
+            .add_r(Point(50., 0.), 4.)
+            .add_r(Point(50., 50.), 8.)
+            .add_r(Point(0., 50.), 4.)
+            .close();
+        let expected = "TODO";
         assert_eq!(actual, expected);
     }
 }
