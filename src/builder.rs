@@ -63,10 +63,7 @@ impl PathBuilder {
         &self.0.iter().enumerate().for_each(|(i, bpoint)| {
             let point = Point::from(bpoint);
 
-            let command = match i {
-                0 => "M",
-                _ => "L",
-            };
+            let command = if i == 0 { "M" } else { "L" };
 
             match bpoint.radius {
                 None => {
@@ -77,12 +74,12 @@ impl PathBuilder {
                     let next_index = if i == self.0.len() - 1 { 0 } else { i + 1 };
 
                     let prev_bpoint = &self.0[prev_index];
-                    let pt = point_along_line(&point, &Point::from(prev_bpoint), radius);
-                    data.push_str(&format!("{}{} ", command, pt));
+                    let prev_point = point_along_line(&point, &Point::from(prev_bpoint), radius);
+                    data.push_str(&format!("{}{} ", command, prev_point));
 
                     let next_bpoint = &self.0[next_index];
-                    let pt2 = point_along_line(&point, &Point::from(next_bpoint), radius);
-                    data.push_str(&format!("A {},{} 0 0 1 {} ", radius, radius, pt2));
+                    let next_point = point_along_line(&point, &Point::from(next_bpoint), radius);
+                    data.push_str(&format!("Q{} {} ", point, next_point));
                 }
             }
         });
@@ -123,7 +120,7 @@ mod tests {
             .add_r(Point(50., 50.), 8.)
             .add(Point(0., 50.))
             .close();
-        let expected = "M0,0 L46,0 A 4,4 0 0 1 50,4 L50,42 A 8,8 0 0 1 42,50 L0,50 Z";
+        let expected = "M0,0 L46,0 Q50,0 50,4 L50,42 Q50,50 42,50 L0,50 Z";
         assert_eq!(actual, expected);
     }
 
@@ -135,8 +132,7 @@ mod tests {
             .add_r(Point(50., 50.), 8.)
             .add(Point(0., 50.))
             .close();
-        let expected =
-            "M0,4 A 4,4 0 0 1 4,0 L46,0 A 4,4 0 0 1 50,4 L50,42 A 8,8 0 0 1 42,50 L0,50 Z";
+        let expected = "M0,4 Q0,0 4,0 L46,0 Q50,0 50,4 L50,42 Q50,50 42,50 L0,50 Z";
         assert_eq!(actual, expected);
     }
 
@@ -148,8 +144,7 @@ mod tests {
             .add_r(Point(50., 50.), 8.)
             .add_r(Point(0., 50.), 4.)
             .close();
-        let expected =
-            "M0,0 L46,0 A 4,4 0 0 1 50,4 L50,42 A 8,8 0 0 1 42,50 L4,50 A 4,4 0 0 1 0,46 Z";
+        let expected = "M0,0 L46,0 Q50,0 50,4 L50,42 Q50,50 42,50 L4,50 Q0,50 0,46 Z";
         assert_eq!(actual, expected);
     }
 
@@ -161,7 +156,7 @@ mod tests {
             .add_r(Point(50., 50.), 8.)
             .add_r(Point(0., 50.), 4.)
             .close();
-        let expected = "M0,4 A 4,4 0 0 1 4,0 L46,0 A 4,4 0 0 1 50,4 L50,42 A 8,8 0 0 1 42,50 L4,50 A 4,4 0 0 1 0,46 Z";
+        let expected = "M0,4 Q0,0 4,0 L46,0 Q50,0 50,4 L50,42 Q50,50 42,50 L4,50 Q0,50 0,46 Z";
         assert_eq!(actual, expected);
     }
 }
