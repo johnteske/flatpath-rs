@@ -135,7 +135,8 @@ mod tests {
             .add_r(Point(50., 50.), 8.)
             .add(Point(0., 50.))
             .close();
-        let expected = "TODO";
+        let expected =
+            "M0,4 A 4,4 0 0 1 4,0 L46,0 A 4,4 0 0 1 50,4 L50,42 A 8,8 0 0 1 42,50 L0,50 Z";
         assert_eq!(actual, expected);
     }
 
@@ -147,7 +148,8 @@ mod tests {
             .add_r(Point(50., 50.), 8.)
             .add_r(Point(0., 50.), 4.)
             .close();
-        let expected = "TODO";
+        let expected =
+            "M0,0 L46,0 A 4,4 0 0 1 50,4 L50,42 A 8,8 0 0 1 42,50 L4,50 A 4,4 0 0 1 0,46 Z";
         assert_eq!(actual, expected);
     }
 
@@ -159,7 +161,7 @@ mod tests {
             .add_r(Point(50., 50.), 8.)
             .add_r(Point(0., 50.), 4.)
             .close();
-        let expected = "TODO";
+        let expected = "M0,4 A 4,4 0 0 1 4,0 L46,0 A 4,4 0 0 1 50,4 L50,42 A 8,8 0 0 1 42,50 L4,50 A 4,4 0 0 1 0,46 Z";
         assert_eq!(actual, expected);
     }
 }
