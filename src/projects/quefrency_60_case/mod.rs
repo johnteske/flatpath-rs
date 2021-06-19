@@ -26,7 +26,7 @@ pub fn project() -> Document {
 
     // LEFT SIDE
     let left_width_top = _mm(141.35);
-    let left_width_bot = _mm(141.112);
+    let left_width_bot = _mm(146.112);
 
     let mut left = Group::new();
 
