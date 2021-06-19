@@ -1,6 +1,6 @@
 use std::fmt;
 
-struct Point(f32, f32);
+pub struct Point(pub f32, pub f32);
 
 impl fmt::Display for Point {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -26,14 +26,14 @@ struct BuilderPoint {
 // add absolute points, with optional radius,
 // returns SVG data path
 #[derive(Default)]
-struct PathBuilder(Vec<BuilderPoint>);
+pub struct PathBuilder(Vec<BuilderPoint>);
 
 impl PathBuilder {
-    fn new() -> Self {
+    pub fn new() -> Self {
         PathBuilder::default()
     }
 
-    fn add(mut self, point: Point) -> Self {
+    pub fn add(mut self, point: Point) -> Self {
         self.0.push(BuilderPoint {
             x: point.0,
             y: point.1,
@@ -43,7 +43,7 @@ impl PathBuilder {
         self
     }
 
-    fn add_r(mut self, point: Point, radius: Radius) -> Self {
+    pub fn add_r(mut self, point: Point, radius: Radius) -> Self {
         if radius <= 0. {
             panic!("radius must be > 0");
         }
@@ -88,7 +88,7 @@ impl PathBuilder {
     }
 
     // build + Z
-    fn close(&self) -> String {
+    pub fn close(&self) -> String {
         format!("{}Z", &self.build())
     }
 }
