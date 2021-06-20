@@ -1,5 +1,6 @@
 mod builder;
 mod projects;
+mod units;
 
 fn main() {
     let doc = projects::quefrency_60_case::project();
