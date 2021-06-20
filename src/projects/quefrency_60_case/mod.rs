@@ -43,8 +43,14 @@ pub fn project() -> Document {
         .add_r(Point(0., 0.), outer_corner_radius)
         // audio/LED module
         .add_r(Point(alm_x - alm_lead, 0.), inner_corner_radius)
-        .add_r(Point(alm_x, -avm.height), inner_corner_radius)
-        .add_r(Point(alm_x + avm.width, -avm.height), inner_corner_radius)
+        .add_r(
+            Point(alm_x, -2. * avm.padding - avm.height),
+            inner_corner_radius,
+        )
+        .add_r(
+            Point(alm_x + avm.width, -2. * avm.padding - avm.height),
+            inner_corner_radius,
+        )
         .add_r(Point(alm_x + avm.width + alm_lead, 0.), inner_corner_radius)
         // end audio/LED module
         .add_r(Point(left_width_top, 0.), inner_corner_radius)
@@ -82,12 +88,15 @@ pub fn project() -> Document {
     }
 
     // module
-    left = left.add(
-        Circle::new()
-            .set("r", mm(3.))
-            .set("cx", thickness)
-            .set("cy", mm(-3.) - inner_corner_radius),
-    );
+    let avm_height = avm.height;
+    left = left.add(avm.render().set(
+        "transform",
+        format!(
+            "translate({},{})",
+            thickness * 2.,
+            -inner_corner_radius - avm_height
+        ),
+    ));
 
     Document::new()
         .set("viewBox", (0, 0, left_width_bot, height))
