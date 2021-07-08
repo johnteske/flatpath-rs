@@ -75,6 +75,6 @@ mod tests {
         assert_eq!(c.x(), -3.0);
 
         let c: _Circle = c.into();
-        assert_eq!(c.to_string(), "circ");
+        assert_eq!(c.to_string(), r#"<circle cx="0" cy="0" r="3"/>"#);
     }
 }
