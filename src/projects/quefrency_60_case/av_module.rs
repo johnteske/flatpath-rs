@@ -1,6 +1,7 @@
 use svg::node::element::{Circle, Group, Rectangle};
 
 use crate::units::mm;
+use crate::units::Number;
 
 pub struct AVModule {
     pub width: f32,
@@ -11,7 +12,7 @@ pub struct AVModule {
 
 impl AVModule {
     pub fn new(padding: f32) -> Self {
-        let component_w = vec![6., 6., 12., 51.];
+        let component_w = vec![12., 13., 12., 51.];
         let sum: f32 = mm(component_w.iter().sum());
         let total_padding = (component_w.len() + 1) as f32 * padding;
         let width = sum + total_padding;
@@ -43,32 +44,77 @@ impl AVModule {
 
         let components = vec![
             // RCA
-            mm(3.),
-            mm(3.),
-            mm(6.),
+            Group2 {
+                width: mm(12.),
+                height: mm(12.),
+                element: Group::new()
+                    .add(
+                        Circle::new()
+                            .set("r", mm(3.))
+                            .set("cx", mm(6.))
+                            .set("cy", self.cy),
+                    )
+                    .add(
+                        Circle::new()
+                            .set("r", mm(6.))
+                            .set("cx", mm(6.))
+                            .set("cy", self.cy),
+                    ),
+            },
+            // switch
+            Group2 {
+                width: mm(13.),
+                height: mm(12.),
+                element: Group::new()
+                    .add(
+                        Circle::new()
+                            .set("r", mm(3.))
+                            .set("cx", mm(13.) / 2.)
+                            .set("cy", self.cy),
+                    )
+                    .add(
+                        Rectangle::new()
+                            .set("width", mm(13.))
+                            .set("height", mm(12.)),
+                    ),
+            },
+            // piezo
+            Group2 {
+                width: mm(12.),
+                height: mm(12.),
+                element: Group::new().add(
+                    Circle::new()
+                        .set("r", mm(6.))
+                        .set("cx", mm(6.))
+                        .set("cy", self.cy),
+                ),
+            },
+            // LEDs
+            Group2 {
+                width: mm(51.),
+                height: mm(10.),
+                element: Group::new().add(
+                    Rectangle::new()
+                        .set("width", mm(51.))
+                        .set("height", mm(10.))
+                        .set("y", (self.height - mm(10.)) / 2.),
+                ),
+            },
         ];
 
         let mut x = self.padding;
-        for r in components {
-            x += r;
-            g = g.add(
-                Circle::new()
-                    .set("r", r)
-                    .set("cy", self.cy)
-                    .set("transform", format!("translate({}, 0)", x)),
-            );
-            x += r + self.padding;
+        for c in components {
+            g = g.add(c.element.set("transform", format!("translate({}, 0)", x)));
+            x += c.width;
+            x += self.padding;
         }
-
-        // LEDs
-        g = g.add(
-            Rectangle::new()
-                .set("width", mm(51.))
-                .set("height", mm(10.))
-                .set("y", (self.height - mm(10.)) / 2.)
-                .set("transform", format!("translate({}, 0)", x)),
-        );
 
         g
     }
+}
+
+struct Group2 {
+    width: Number,
+    height: Number,
+    element: Group,
 }
