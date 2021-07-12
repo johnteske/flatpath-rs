@@ -6,63 +6,64 @@ use crate::units::Number;
 use crate::units::{inches, mm};
 
 pub fn project() -> Document {
+    let rung_width = inches(2.);
+    let rung_spacing = inches(1.5);
     let num_rungs = 6;
-    let T = mm(3.);
+    let t = mm(3.);
     let corner_radius = mm(1.0); // soften the outer edge a little
-    let project_width = inches(10.); // TODO
-    let project_height = inches(10.); // TODO (num_rungs * T) + ((num_rungs + 1) * rung_spacing)
 
     let mut g = Group::new()
         .set("fill", "none")
         .set("stroke", "black")
         .set("stroke-width", 1);
 
-    let ladder_side_width = T * 4.0;
-    let ladder_side_height = inches(10.);
-    let mut ladder_side = Group::new().add(
+    let side_width = t * 4.0;
+    let side_height = (num_rungs as Number * t) + ((num_rungs as Number + 1.) * rung_spacing);
+    let mut side = Group::new().add(
         Rectangle::new()
-            .set("width", ladder_side_width)
-            .set("height", ladder_side_height)
+            .set("width", side_width)
+            .set("height", side_height)
             .set("rx", corner_radius)
             .set("ry", corner_radius),
     );
 
-    let rung_spacing = inches(1.);
     for i in 0..num_rungs {
-        ladder_side = ladder_side.add(
+        side = side.add(
             Rectangle::new()
-                .set("width", T)
-                .set("height", T)
-                .set("x", T * 1.5)
-                .set("y", (rung_spacing * (i as Number + 1.)) + (T * i as Number)),
+                .set("width", t)
+                .set("height", t)
+                .set("x", t * 1.5)
+                .set("y", (rung_spacing * (i as Number + 1.)) + (t * i as Number)),
         );
     }
 
-    g = g.add(ladder_side);
+    g = g.add(side);
 
-    let rung_width = inches(2.);
-    let ladder_rung_data = PathBuilder::new()
+    let rung_data = PathBuilder::new()
         // top edge
-        .add(Point(T, 0.))
-        .add(Point(T + rung_width, 0.))
-        .add(Point(T + rung_width, T * 0.5))
+        .add(Point(t, 0.))
+        .add(Point(t + rung_width, 0.))
+        .add(Point(t + rung_width, t * 0.5))
         // right tab
-        .add_r(Point(T + rung_width + T, T * 0.5), corner_radius)
-        .add_r(Point(T + rung_width + T, T * 1.5), corner_radius)
-        .add(Point(T + rung_width, T * 1.5))
+        .add_r(Point(t + rung_width + t, t * 0.5), corner_radius)
+        .add_r(Point(t + rung_width + t, t * 1.5), corner_radius)
+        .add(Point(t + rung_width, t * 1.5))
         // bottom edge
-        .add(Point(T + rung_width, T * 2.0))
-        .add(Point(T, T * 2.0))
-        .add(Point(T, T * 1.5))
+        .add(Point(t + rung_width, t * 2.0))
+        .add(Point(t, t * 2.0))
+        .add(Point(t, t * 1.5))
         // left tab
-        .add_r(Point(0., T * 1.5), corner_radius)
-        .add_r(Point(0., T * 0.5), corner_radius)
-        .add(Point(T, T * 0.5))
+        .add_r(Point(0., t * 1.5), corner_radius)
+        .add_r(Point(0., t * 0.5), corner_radius)
+        .add(Point(t, t * 0.5))
         .close();
 
-    g = g.add(Path::new().set("d", ladder_rung_data));
+    g = g.add(Path::new().set("d", rung_data).set(
+        "transform",
+        format!("translate({}, {})", side_width + t, 0.),
+    ));
 
     Document::new()
-        .set("viewBox", (0, 0, project_width, project_height))
+        .set("viewBox", (0, 0, t + rung_width + t, side_height))
         .add(g)
 }
