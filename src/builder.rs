@@ -60,7 +60,7 @@ impl PathBuilder {
     fn build(&self) -> String {
         let mut data = String::new();
 
-        &self.0.iter().enumerate().for_each(|(i, bpoint)| {
+        self.0.iter().enumerate().for_each(|(i, bpoint)| {
             let point = Point::from(bpoint);
 
             let command = if i == 0 { "M" } else { "L" };
