@@ -17,7 +17,7 @@ impl From<&BuilderPoint> for Point {
 type Radius = f32;
 
 #[derive(Debug)]
-struct BuilderPoint {
+pub struct BuilderPoint {
     x: f32,
     y: f32,
     radius: Option<f32>,
@@ -57,7 +57,7 @@ impl PathBuilder {
         self
     }
 
-    fn build(&self) -> String {
+    pub fn build(&self) -> String {
         let mut data = String::new();
 
         self.0.iter().enumerate().for_each(|(i, bpoint)| {
