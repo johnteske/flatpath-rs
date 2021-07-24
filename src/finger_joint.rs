@@ -1,5 +1,10 @@
-use crate::builder::{BuilderPoint, PathBuilder, Point};
+use crate::builder::{PathBuilder, Point};
 use crate::units::Number;
+
+// terminology
+// pin/socket
+//
+// half pin, in the case the first/last is.. half
 
 // AKA box joint
 // TODO this could also handle mortise and tenon joints?
@@ -34,35 +39,33 @@ impl FingerJointBuilder {
         self.radius = radius;
         self
     }
-    // TODO pass in y1/y2 for a/b parts
-    pub fn build(&self) -> FingerJoint {
+    fn build_part(&self, part: FingerJointPart) -> PathBuilder {
+        let (y1, y2) = match part {
+            FingerJointPart::A => (self.height, 0.),
+            FingerJointPart::B => (0., self.height),
+        };
+
         let finger_length = self.width / (self.num_fingers as Number);
 
-        let mut a = PathBuilder::new();
+        let mut pb = PathBuilder::new();
         for i in 0..self.num_fingers {
             let x1 = finger_length * i as Number;
             let x2 = x1 + finger_length;
             if i & 1 == 0 {
                 // even
-                a = a.add(Point(x1, self.height)).add(Point(x2, self.height));
+                pb = pb.add(Point(x1, y1)).add(Point(x2, y1));
             } else {
                 // odd
-                a = a.add(Point(x1, 0.)).add(Point(x2, 0.));
+                pb = pb.add(Point(x1, y2)).add(Point(x2, y2));
             }
         }
 
-        let mut b = PathBuilder::new();
-        for i in 0..self.num_fingers {
-            let x1 = finger_length * i as Number;
-            let x2 = x1 + finger_length;
-            if i & 1 == 0 {
-                // even
-                b = b.add(Point(x1, 0.)).add(Point(x2, 0.));
-            } else {
-                // odd
-                b = b.add(Point(x1, self.height)).add(Point(x2, self.height));
-            }
-        }
+        pb
+    }
+    // TODO pass in y1/y2 for a/b parts
+    pub fn build(&self) -> FingerJoint {
+        let a = self.build_part(FingerJointPart::A);
+        let b = self.build_part(FingerJointPart::B);
 
         FingerJoint { a, b }
     }
@@ -87,6 +90,11 @@ impl FingerJoint {
     pub fn parts(self) -> (PathBuilder, PathBuilder) {
         (self.a, self.b)
     }
+}
+
+enum FingerJointPart {
+    A,
+    B,
 }
 
 #[cfg(test)]
