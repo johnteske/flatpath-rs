@@ -34,8 +34,10 @@ impl FingerJointBuilder {
         self.radius = radius;
         self
     }
+    // TODO pass in y1/y2 for a/b parts
     pub fn build(&self) -> FingerJoint {
         let finger_length = self.width / (self.num_fingers as Number);
+
         let mut a = PathBuilder::new();
         for i in 0..self.num_fingers {
             let x1 = finger_length * i as Number;
@@ -48,16 +50,27 @@ impl FingerJointBuilder {
                 a = a.add(Point(x1, 0.)).add(Point(x2, 0.));
             }
         }
-        FingerJoint {
-        a
-        //b:
+
+        let mut b = PathBuilder::new();
+        for i in 0..self.num_fingers {
+            let x1 = finger_length * i as Number;
+            let x2 = x1 + finger_length;
+            if i & 1 == 0 {
+                // even
+                b = b.add(Point(x1, 0.)).add(Point(x2, 0.));
+            } else {
+                // odd
+                b = b.add(Point(x1, self.height)).add(Point(x2, self.height));
+            }
         }
+
+        FingerJoint { a, b }
     }
 }
 
 struct FingerJoint {
     a: PathBuilder,
-    // b: PathBuilder
+    b: PathBuilder,
     // width, height
 }
 
@@ -67,6 +80,12 @@ impl FingerJoint {
     }
     pub fn a(self) -> PathBuilder {
         self.a
+    }
+    pub fn b(self) -> PathBuilder {
+        self.b
+    }
+    pub fn parts(self) -> (PathBuilder, PathBuilder) {
+        (self.a, self.b)
     }
 }
 
@@ -79,9 +98,16 @@ mod tests {
         let joint = FingerJoint::builder()
             .width(100.)
             .height(10.)
-            .num_fingers(3)
+            .num_fingers(4)
             .build();
-        let a = joint.a();
-        assert_eq!(a.build(), "DATA");
+        let (a, b) = joint.parts();
+        assert_eq!(
+            a.build(),
+            "M0,10 L25,10 L25,0 L50,0 L50,10 L75,10 L75,0 L100,0 "
+        );
+        assert_eq!(
+            b.build(),
+            "M0,0 L25,0 L25,10 L50,10 L50,0 L75,0 L75,10 L100,10 "
+        );
     }
 }
