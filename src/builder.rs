@@ -1,6 +1,8 @@
 use std::fmt;
 
-pub struct Point(pub f32, pub f32);
+type Radius = f32;
+
+struct Point(f32, f32);
 
 impl fmt::Display for Point {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -8,19 +10,17 @@ impl fmt::Display for Point {
     }
 }
 
-impl From<&BuilderPoint> for Point {
-    fn from(bpoint: &BuilderPoint) -> Self {
-        Point(bpoint.x, bpoint.y)
-    }
-}
-
-type Radius = f32;
-
 #[derive(Debug)]
 struct BuilderPoint {
     x: f32,
     y: f32,
     radius: Option<f32>,
+}
+
+impl BuilderPoint {
+    fn point(&self) -> Point {
+        Point(self.x, self.y)
+    }
 }
 
 // add absolute points, with optional radius,
@@ -33,17 +33,11 @@ impl PathBuilder {
         PathBuilder::default()
     }
 
-    pub fn add(mut self, point: Point) -> Self {
-        self.0.push(BuilderPoint {
-            x: point.0,
-            y: point.1,
-            radius: None,
-        });
-
-        self
+    pub fn add(self, point: (f32, f32)) -> Self {
+        self.add_r(point, 0.)
     }
 
-    pub fn add_r(mut self, point: Point, radius: Radius) -> Self {
+    pub fn add_r(mut self, point: (f32, f32), radius: Radius) -> Self {
         let r = match radius {
             r if r == 0. => None,
             r if r > 0. => Some(r),
@@ -63,7 +57,7 @@ impl PathBuilder {
         let mut data = String::new();
 
         self.0.iter().enumerate().for_each(|(i, bpoint)| {
-            let point = Point::from(bpoint);
+            let point = bpoint.point();
 
             let command = if i == 0 { "M" } else { "L" };
 
@@ -76,11 +70,11 @@ impl PathBuilder {
                     let next_index = if i == self.0.len() - 1 { 0 } else { i + 1 };
 
                     let prev_bpoint = &self.0[prev_index];
-                    let prev_point = point_along_line(&point, &Point::from(prev_bpoint), radius);
+                    let prev_point = point_along_line(&point, &prev_bpoint.point(), radius);
                     data.push_str(&format!("{}{} ", command, prev_point));
 
                     let next_bpoint = &self.0[next_index];
-                    let next_point = point_along_line(&point, &Point::from(next_bpoint), radius);
+                    let next_point = point_along_line(&point, &next_bpoint.point(), radius);
                     data.push_str(&format!("Q{} {} ", point, next_point));
                 }
             }
@@ -117,10 +111,10 @@ mod tests {
     #[test]
     fn without_start_end_radii() {
         let actual = PathBuilder::new()
-            .add(Point(0., 0.))
-            .add_r(Point(50., 0.), 4.)
-            .add_r(Point(50., 50.), 8.)
-            .add(Point(0., 50.))
+            .add((0., 0.))
+            .add_r((50., 0.), 4.)
+            .add_r((50., 50.), 8.)
+            .add((0., 50.))
             .close();
         let expected = "M0,0 L46,0 Q50,0 50,4 L50,42 Q50,50 42,50 L0,50 Z";
         assert_eq!(actual, expected);
@@ -129,10 +123,10 @@ mod tests {
     #[test]
     fn with_start_radius() {
         let actual = PathBuilder::new()
-            .add_r(Point(0., 0.), 4.)
-            .add_r(Point(50., 0.), 4.)
-            .add_r(Point(50., 50.), 8.)
-            .add(Point(0., 50.))
+            .add_r((0., 0.), 4.)
+            .add_r((50., 0.), 4.)
+            .add_r((50., 50.), 8.)
+            .add((0., 50.))
             .close();
         let expected = "M0,4 Q0,0 4,0 L46,0 Q50,0 50,4 L50,42 Q50,50 42,50 L0,50 Z";
         assert_eq!(actual, expected);
@@ -141,10 +135,10 @@ mod tests {
     #[test]
     fn with_end_radius() {
         let actual = PathBuilder::new()
-            .add(Point(0., 0.))
-            .add_r(Point(50., 0.), 4.)
-            .add_r(Point(50., 50.), 8.)
-            .add_r(Point(0., 50.), 4.)
+            .add((0., 0.))
+            .add_r((50., 0.), 4.)
+            .add_r((50., 50.), 8.)
+            .add_r((0., 50.), 4.)
             .close();
         let expected = "M0,0 L46,0 Q50,0 50,4 L50,42 Q50,50 42,50 L4,50 Q0,50 0,46 Z";
         assert_eq!(actual, expected);
@@ -153,10 +147,10 @@ mod tests {
     #[test]
     fn with_start_end_radii() {
         let actual = PathBuilder::new()
-            .add_r(Point(0., 0.), 4.)
-            .add_r(Point(50., 0.), 4.)
-            .add_r(Point(50., 50.), 8.)
-            .add_r(Point(0., 50.), 4.)
+            .add_r((0., 0.), 4.)
+            .add_r((50., 0.), 4.)
+            .add_r((50., 50.), 8.)
+            .add_r((0., 50.), 4.)
             .close();
         let expected = "M0,4 Q0,0 4,0 L46,0 Q50,0 50,4 L50,42 Q50,50 42,50 L4,50 Q0,50 0,46 Z";
         assert_eq!(actual, expected);

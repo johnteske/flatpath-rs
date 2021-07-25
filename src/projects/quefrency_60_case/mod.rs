@@ -1,7 +1,7 @@
 use svg::node::element::{Circle, Group, Path};
 use svg::Document;
 
-use crate::builder::{PathBuilder, Point};
+use crate::builder::PathBuilder;
 use crate::units::mm;
 
 mod av_module;
@@ -40,42 +40,36 @@ pub fn project() -> Document {
         .set("stroke-width", 0);
 
     let left_data = PathBuilder::new()
-        .add_r(Point(0., 0.), outer_corner_radius)
+        .add_r((0., 0.), outer_corner_radius)
         // audio/LED module
-        .add_r(Point(alm_x - alm_lead, 0.), inner_corner_radius)
+        .add_r((alm_x - alm_lead, 0.), inner_corner_radius)
+        .add_r((alm_x, -2. * avm.padding - avm.height), inner_corner_radius)
         .add_r(
-            Point(alm_x, -2. * avm.padding - avm.height),
+            (alm_x + avm.width, -2. * avm.padding - avm.height),
             inner_corner_radius,
         )
-        .add_r(
-            Point(alm_x + avm.width, -2. * avm.padding - avm.height),
-            inner_corner_radius,
-        )
-        .add_r(Point(alm_x + avm.width + alm_lead, 0.), inner_corner_radius)
+        .add_r((alm_x + avm.width + alm_lead, 0.), inner_corner_radius)
         // end audio/LED module
-        .add_r(Point(left_width_top, 0.), inner_corner_radius)
-        .add_r(Point(left_width_top, thickness), inner_corner_radius)
-        .add(Point(thickness, thickness))
-        .add(Point(thickness, height - thickness))
-        .add_r(
-            Point(left_width_bot, height - thickness),
-            inner_corner_radius,
-        )
-        .add_r(Point(left_width_bot, height), inner_corner_radius)
-        .add_r(Point(0., height), outer_corner_radius)
+        .add_r((left_width_top, 0.), inner_corner_radius)
+        .add_r((left_width_top, thickness), inner_corner_radius)
+        .add((thickness, thickness))
+        .add((thickness, height - thickness))
+        .add_r((left_width_bot, height - thickness), inner_corner_radius)
+        .add_r((left_width_bot, height), inner_corner_radius)
+        .add_r((0., height), outer_corner_radius)
         .close();
 
     left = left.add(Path::new().set("d", left_data));
 
     // in mm
     let holes = vec![
-        Point(4.6, 4.6),       // top left
-        Point(70.65, 4.0),     // top edge
-        Point(137.35, 4.0),    // top right
-        Point(4.0, 55.625),    // left edge
-        Point(4.6, 106.65),    // left bottom
-        Point(73.05, 107.250), // bottom edge
-        Point(142.11, 107.25), // bottom right
+        (4.6, 4.6),       // top left
+        (70.65, 4.0),     // top edge
+        (137.35, 4.0),    // top right
+        (4.0, 55.625),    // left edge
+        (4.6, 106.65),    // left bottom
+        (73.05, 107.250), // bottom edge
+        (142.11, 107.25), // bottom right
     ];
 
     for p in holes {

@@ -1,7 +1,7 @@
 use svg::node::element::{Group, Path, Rectangle};
 use svg::Document;
 
-use crate::builder::{PathBuilder, Point};
+use crate::builder::PathBuilder;
 use crate::units::Number;
 use crate::units::{inches, mm};
 
@@ -41,21 +41,21 @@ pub fn project() -> Document {
 
     let rung_data = PathBuilder::new()
         // top edge
-        .add(Point(t, 0.))
-        .add(Point(t + rung_width, 0.))
-        .add(Point(t + rung_width, t * 0.5))
+        .add((t, 0.))
+        .add((t + rung_width, 0.))
+        .add((t + rung_width, t * 0.5))
         // right tab
-        .add_r(Point(t + rung_width + t, t * 0.5), corner_radius)
-        .add_r(Point(t + rung_width + t, t * 1.5), corner_radius)
-        .add(Point(t + rung_width, t * 1.5))
+        .add_r((t + rung_width + t, t * 0.5), corner_radius)
+        .add_r((t + rung_width + t, t * 1.5), corner_radius)
+        .add((t + rung_width, t * 1.5))
         // bottom edge
-        .add(Point(t + rung_width, t * 2.0))
-        .add(Point(t, t * 2.0))
-        .add(Point(t, t * 1.5))
+        .add((t + rung_width, t * 2.0))
+        .add((t, t * 2.0))
+        .add((t, t * 1.5))
         // left tab
-        .add_r(Point(0., t * 1.5), corner_radius)
-        .add_r(Point(0., t * 0.5), corner_radius)
-        .add(Point(t, t * 0.5))
+        .add_r((0., t * 1.5), corner_radius)
+        .add_r((0., t * 0.5), corner_radius)
+        .add((t, t * 0.5))
         .close();
 
     g = g.add(Path::new().set("d", rung_data).set(
