@@ -44,14 +44,16 @@ impl PathBuilder {
     }
 
     pub fn add_r(mut self, point: Point, radius: Radius) -> Self {
-        if radius <= 0. {
-            panic!("radius must be > 0");
-        }
+        let r = match radius {
+            r if r == 0. => None,
+            r if r > 0. => Some(r),
+            _ => panic!("radius must be >= 0."),
+        };
 
         self.0.push(BuilderPoint {
             x: point.0,
             y: point.1,
-            radius: Some(radius),
+            radius: r,
         });
 
         self
