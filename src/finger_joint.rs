@@ -14,9 +14,9 @@ use crate::units::Number;
 struct FingerJointBuilder {
     width: Number,
     height: Number,
-    num_fingers: usize, // is there a better word for this? number of fingers total b/t a/b
+    n_fingers: usize, // is there a better word for this? number of fingers total b/t a/b
     radius: Number,
-    // biased
+    // biased: bool,
 }
 
 impl FingerJointBuilder {
@@ -31,8 +31,8 @@ impl FingerJointBuilder {
         self.height = height;
         self
     }
-    pub fn num_fingers(mut self, n: usize) -> FingerJointBuilder {
-        self.num_fingers = n;
+    pub fn n_fingers(mut self, n: usize) -> FingerJointBuilder {
+        self.n_fingers = n;
         self
     }
     pub fn radius(mut self, radius: Number) -> FingerJointBuilder {
@@ -40,29 +40,34 @@ impl FingerJointBuilder {
         self
     }
     fn build_part(&self, part: FingerJointPart) -> PathBuilder {
-        let (y1, y2) = match part {
-            FingerJointPart::A => (self.height, 0.),
+        let (y0, y1) = match part {
+            FingerJointPart::A => (0., -self.height),
             FingerJointPart::B => (0., self.height),
         };
 
-        let finger_length = self.width / (self.num_fingers as Number);
+        let finger_length = self.width / (self.n_fingers as Number);
 
         let mut pb = PathBuilder::new();
-        for i in 0..self.num_fingers {
-            let x1 = finger_length * i as Number;
-            let x2 = x1 + finger_length;
+        for i in 0..self.n_fingers {
+            let x0 = finger_length * i as Number;
+            let x1 = x0 + finger_length;
+            if i == 0 {
+                pb = pb.add(Point(x0, y0));
+            }
+            // TODO this is backwards for part B
             if i & 1 == 0 {
                 // even
-                pb = pb.add(Point(x1, y1)).add(Point(x2, y1));
+                pb = pb.add(Point(x0, y1)).add(Point(x1, y1));
             } else {
                 // odd
-                pb = pb.add(Point(x1, y2)).add(Point(x2, y2));
+                pb = pb.add(Point(x0, y0)).add(Point(x1, y0));
             }
+
+            // TODO if doesn't at at y0, add a point
         }
 
         pb
     }
-    // TODO pass in y1/y2 for a/b parts
     pub fn build(&self) -> FingerJoint {
         let a = self.build_part(FingerJointPart::A);
         let b = self.build_part(FingerJointPart::B);
@@ -81,9 +86,11 @@ impl FingerJoint {
     pub fn builder() -> FingerJointBuilder {
         FingerJointBuilder::new()
     }
+    /// Fingers protruding "up"
     pub fn a(self) -> PathBuilder {
         self.a
     }
+    /// Fingers protruding "down"
     pub fn b(self) -> PathBuilder {
         self.b
     }
@@ -102,20 +109,37 @@ mod tests {
     use super::*;
 
     #[test]
-    fn finger_joint() {
+    fn finger_joint_even() {
         let joint = FingerJoint::builder()
             .width(100.)
             .height(10.)
-            .num_fingers(4)
+            .n_fingers(4)
             .build();
         let (a, b) = joint.parts();
         assert_eq!(
             a.build(),
-            "M0,10 L25,10 L25,0 L50,0 L50,10 L75,10 L75,0 L100,0 "
+            "M0,0 L0,-10 L25,-10 L25,0 L50,0 L50,-10 L75,-10 L75,0 L100,0 "
         );
+        // assert_eq!(
+        //   b.build(),
+        //   "M0,0 L25,0 L25,10 L50,10 L50,0 L75,0 L75,10 L100,10 "
+        // );
+    }
+    #[test]
+    fn finger_joint_odd() {
+        let joint = FingerJoint::builder()
+            .width(60.)
+            .height(10.)
+            .n_fingers(3)
+            .build();
+        let (a, b) = joint.parts();
         assert_eq!(
-            b.build(),
-            "M0,0 L25,0 L25,10 L50,10 L50,0 L75,0 L75,10 L100,10 "
+            a.build(),
+            "M0,0 L0,-10 L20,-10 L20,0 L40,0 L40,-10 L60,-10 L60,0 " // TODO add logic to put point at y0
         );
+        // assert_eq!(
+        //   b.build(),
+        //   "M0,0 L25,0 L25,10 L50,10 L50,0 L75,0 L75,10 L100,10 "
+        // );
     }
 }
