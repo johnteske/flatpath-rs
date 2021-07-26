@@ -1,7 +1,7 @@
 use svg::node::element::Circle as _Circle;
 
-use super::BoundingBox;
-use crate::units::Number;
+use crate::bounding_box::BoundingBox;
+use crate::unit::Number;
 
 #[derive(Default)]
 pub struct Circle {

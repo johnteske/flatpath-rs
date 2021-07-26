@@ -11,7 +11,7 @@ impl fmt::Display for Point {
 }
 
 #[derive(Debug)]
-struct BuilderPoint {
+pub struct BuilderPoint {
     x: f32,
     y: f32,
     radius: Option<f32>,
@@ -51,6 +51,11 @@ impl PathBuilder {
         });
 
         self
+    }
+
+    pub fn map(self, f: impl FnMut(&BuilderPoint) -> BuilderPoint) -> Self {
+        let new_points = self.0.iter().map(f).collect::<Vec<BuilderPoint>>();
+        PathBuilder(new_points)
     }
 
     fn build(&self) -> String {
@@ -151,6 +156,19 @@ mod tests {
             .add_r((50., 0.), 4.)
             .add_r((50., 50.), 8.)
             .add_r((0., 50.), 4.)
+            .close();
+        let expected = "M0,4 Q0,0 4,0 L46,0 Q50,0 50,4 L50,42 Q50,50 42,50 L4,50 Q0,50 0,46 Z";
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn map() {
+        let actual = PathBuilder::new()
+            .add_r((0., 0.), 4.)
+            .add_r((50., 0.), 4.)
+            .add_r((50., 50.), 8.)
+            .add_r((0., 50.), 4.)
+            .map(|p| BuilderPoint { x: p.x + 10., ..*p })
             .close();
         let expected = "M0,4 Q0,0 4,0 L46,0 Q50,0 50,4 L50,42 Q50,50 42,50 L4,50 Q0,50 0,46 Z";
         assert_eq!(actual, expected);
