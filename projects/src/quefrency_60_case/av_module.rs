@@ -1,7 +1,6 @@
 use svg::node::element::{Circle, Group, Rectangle};
 
-use crate::units::mm;
-use crate::units::Number;
+use flatpath::unit::{mm, Number};
 
 pub struct AVModule {
     pub width: f32,

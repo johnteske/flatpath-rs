@@ -1,8 +1,8 @@
 use svg::node::element::{Circle, Group, Path};
 use svg::Document;
 
-use crate::builder::PathBuilder;
-use crate::units::mm;
+use flatpath::shape::path::PathBuilder;
+use flatpath::unit::mm;
 
 mod av_module;
 

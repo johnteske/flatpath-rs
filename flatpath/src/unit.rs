@@ -1,4 +1,6 @@
-//! Absolute length units following the CSS3 specifications for
+//! Absolute length units
+//!
+//! Follows the CSS3 specifications for
 //! [resolution](https://drafts.csswg.org/css-values-3/#resolution) (96dpi) and
 //! [absolute lengths](https://drafts.csswg.org/css-values-3/#absolute-lengths).
 

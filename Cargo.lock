@@ -12,6 +12,7 @@ name = "projects"
 version = "0.0.0"
 dependencies = [
  "flatpath",
+ "svg",
 ]
 
 [[package]]

@@ -1,9 +1,8 @@
 use svg::node::element::{Group, Path, Rectangle};
 use svg::Document;
 
-use crate::builder::PathBuilder;
-use crate::units::Number;
-use crate::units::{inches, mm};
+use flatpath::shape::path::PathBuilder;
+use flatpath::unit::{inches, mm, Number};
 
 pub fn project() -> Document {
     // parameters
