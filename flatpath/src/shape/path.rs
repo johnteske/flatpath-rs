@@ -58,7 +58,7 @@ impl PathBuilder {
         PathBuilder(new_points)
     }
 
-    fn build(&self) -> String {
+    pub fn build(&self) -> String {
         let mut data = String::new();
 
         self.0.iter().enumerate().for_each(|(i, bpoint)| {
@@ -164,13 +164,12 @@ mod tests {
     #[test]
     fn map() {
         let actual = PathBuilder::new()
-            .add_r((0., 0.), 4.)
-            .add_r((50., 0.), 4.)
-            .add_r((50., 50.), 8.)
-            .add_r((0., 50.), 4.)
-            .map(|p| BuilderPoint { x: p.x + 10., ..*p })
-            .close();
-        let expected = "M0,4 Q0,0 4,0 L46,0 Q50,0 50,4 L50,42 Q50,50 42,50 L4,50 Q0,50 0,46 Z";
+            .add((0., 0.))
+            .add_r((0., 10.), 5.)
+            .add((10., 10.))
+            .map(|p| BuilderPoint { y: p.y + 5., ..*p })
+            .build();
+        let expected = "M0,5 L0,10 Q0,15 5,15 L10,15 ";
         assert_eq!(actual, expected);
     }
 }
