@@ -1,7 +1,7 @@
 use svg::node::element::{Group, Path, Rectangle};
 use svg::Document;
 
-use flatpath::shape::path::PathBuilder;
+use flatpath::shape::path::DBuilder;
 use flatpath::unit::{inches, mm, Number};
 
 pub fn project() -> Document {
@@ -43,7 +43,7 @@ pub fn project() -> Document {
 
     g = g.add(side);
 
-    let rung_data = PathBuilder::new()
+    let rung_data = DBuilder::new()
         // top edge
         .add((t, 0.))
         .add((t + rung_width, 0.))

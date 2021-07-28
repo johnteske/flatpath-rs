@@ -1,7 +1,7 @@
 use svg::node::element::{Circle, Group, Path};
 use svg::Document;
 
-use flatpath::shape::path::PathBuilder;
+use flatpath::shape::path::DBuilder;
 use flatpath::unit::mm;
 
 mod av_module;
@@ -39,7 +39,7 @@ pub fn project() -> Document {
         .set("stroke", "black")
         .set("stroke-width", 0);
 
-    let left_data = PathBuilder::new()
+    let left_data = DBuilder::new()
         .add_r((0., 0.), outer_corner_radius)
         // audio/LED module
         .add_r((alm_x - alm_lead, 0.), inner_corner_radius)

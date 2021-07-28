@@ -26,11 +26,11 @@ impl BuilderPoint {
 // add absolute points, with optional radius,
 // returns SVG data path
 #[derive(Default)]
-pub struct PathBuilder(Vec<BuilderPoint>);
+pub struct DBuilder(Vec<BuilderPoint>);
 
-impl PathBuilder {
+impl DBuilder {
     pub fn new() -> Self {
-        PathBuilder::default()
+        DBuilder::default()
     }
 
     pub fn add(self, point: (f32, f32)) -> Self {
@@ -55,7 +55,7 @@ impl PathBuilder {
 
     pub fn map(self, f: impl FnMut(&BuilderPoint) -> BuilderPoint) -> Self {
         let new_points = self.0.iter().map(f).collect::<Vec<BuilderPoint>>();
-        PathBuilder(new_points)
+        DBuilder(new_points)
     }
 
     pub fn build(&self) -> String {
@@ -115,7 +115,7 @@ mod tests {
 
     #[test]
     fn without_start_end_radii() {
-        let actual = PathBuilder::new()
+        let actual = DBuilder::new()
             .add((0., 0.))
             .add_r((50., 0.), 4.)
             .add_r((50., 50.), 8.)
@@ -127,7 +127,7 @@ mod tests {
 
     #[test]
     fn with_start_radius() {
-        let actual = PathBuilder::new()
+        let actual = DBuilder::new()
             .add_r((0., 0.), 4.)
             .add_r((50., 0.), 4.)
             .add_r((50., 50.), 8.)
@@ -139,7 +139,7 @@ mod tests {
 
     #[test]
     fn with_end_radius() {
-        let actual = PathBuilder::new()
+        let actual = DBuilder::new()
             .add((0., 0.))
             .add_r((50., 0.), 4.)
             .add_r((50., 50.), 8.)
@@ -151,7 +151,7 @@ mod tests {
 
     #[test]
     fn with_start_end_radii() {
-        let actual = PathBuilder::new()
+        let actual = DBuilder::new()
             .add_r((0., 0.), 4.)
             .add_r((50., 0.), 4.)
             .add_r((50., 50.), 8.)
@@ -163,7 +163,7 @@ mod tests {
 
     #[test]
     fn map() {
-        let actual = PathBuilder::new()
+        let actual = DBuilder::new()
             .add((0., 0.))
             .add_r((0., 10.), 5.)
             .add((10., 10.))
