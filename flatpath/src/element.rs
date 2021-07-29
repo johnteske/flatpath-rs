@@ -1,7 +1,19 @@
+//pub(crate) trait Element { // : std::fmt::Display {
+//    fn new() -> Self;
+//    // TODO is private?
+//    fn attr(&mut self, k: String, v: String);
+//}
+
 #[macro_export]
 macro_rules! impl_element(
     ($struct_name:ident, $tag_name:expr) => (
+        #[derive(Default)]
+        pub struct $struct_name {
+            attributes: HashMap<String, String>,
+        }
+
         impl $struct_name {
+        // impl Element for $struct_name {
             pub fn new() -> Self {
                 $struct_name::default()
             }

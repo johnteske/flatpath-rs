@@ -1,11 +1,14 @@
+//use element_derive::Element;
 use std::collections::HashMap;
 
 use crate::impl_element;
+//use crate::element::Element;
 
-#[derive(Default)]
-pub struct Path {
-    attributes: HashMap<String, String>,
-}
+// #[derive(Default)]
+//#[derive(Default, Element)]
+//pub struct Path {
+//    attributes: HashMap<String, String>,
+//}
 
 impl_element!(Path, "path");
 
