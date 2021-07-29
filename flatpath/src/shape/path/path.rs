@@ -1,16 +1,10 @@
-//use element_derive::Element;
 use std::collections::HashMap;
 
 use crate::element::Element;
 use crate::impl_element;
+use crate::impl_shape;
 
-// #[derive(Default)]
-//#[derive(Default, Element)]
-//pub struct Path {
-//    attributes: HashMap<String, String>,
-//}
-
-impl_element!(Path, "path");
+impl_shape!(Path, "path");
 
 impl Path {
     pub fn d(mut self, s: &str) -> Self {
