@@ -1,27 +1,59 @@
-// pub mod group;
+use crate::element::Element;
+use std::collections::HashMap;
 
-use svg;
-
+#[derive(Default)]
 struct Svg {
-    inner: Document
+    attributes: HashMap<String, String>,
+    children: Vec<Box<dyn Element>>,
 }
 
 impl Svg {
     pub fn new() -> Self {
-        Svg { inner: svg::SVG::new() }
+        Svg::default()
     }
-    pub fn append<T>(self, node_element: T) -> Self // TODO what to call this trait?
-    where T: ElementTODO {
-        self.inner.add();
+    // Container
+    pub fn append<T>(mut self, element: T) -> Self
+    where
+        T: 'static + Element,
+    {
+        self.children.push(Box::new(element));
         self
     }
-    // TODO accept "Rect" geometry, not tuple?
-    pub fn view_box(self, rect: (Number, Number, Number, Number)) -> Self {
-        self.inner..set("viewBox", rect)
-        self
+    //    // TODO accept "Rect" geometry, not tuple?
+    //    pub fn view_box(self, rect: (Number, Number, Number, Number)) -> Self {
+    //        self.inner..set("viewBox", rect)
+    //        self
+    //    }
+}
+
+// Container
+impl std::fmt::Display for Svg {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<{} ", "svg")?; // $tag_name)?;
+        for (attr, value) in &self.attributes {
+            write!(f, r#"{}="{}" "#, attr, value)?;
+        }
+        write!(f, "{}", ">")?;
+        //
+        for child in &self.children {
+            write!(f, "{}", child)?;
+        }
+        //
+        write!(f, "{}", "</svg>")
     }
-    // TODO write_to_file
-    pub fn write(&self, path: PathBuf) -> Result {
-        svg::save("image.svg", &doc);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::shape::path::Path;
+
+    #[test]
+    fn svg() {
+        let mut s = Svg::new();
+        let p = Path::new();
+        s = s.append(p);
+
+        assert_eq!(s.to_string(), r#"<svg />"#);
     }
 }

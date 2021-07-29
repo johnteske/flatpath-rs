@@ -1,8 +1,4 @@
-//pub(crate) trait Element { // : std::fmt::Display {
-//    fn new() -> Self;
-//    // TODO is private?
-//    fn attr(&mut self, k: String, v: String);
-//}
+pub trait Element: std::fmt::Display {}
 
 #[macro_export]
 macro_rules! impl_element(
@@ -12,8 +8,9 @@ macro_rules! impl_element(
             attributes: HashMap<String, String>,
         }
 
+        impl Element for $struct_name {}
+
         impl $struct_name {
-        // impl Element for $struct_name {
             pub fn new() -> Self {
                 $struct_name::default()
             }
@@ -22,6 +19,7 @@ macro_rules! impl_element(
             }
         }
 
+        // Shape
         impl std::fmt::Display for Path {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 write!(f, "<{} ", $tag_name)?;
