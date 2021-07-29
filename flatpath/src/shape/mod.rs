@@ -14,6 +14,12 @@ macro_rules! impl_shape(
             attributes: HashMap<String, String>,
         }
 
+        impl $struct_name {
+            pub fn new() -> Self {
+                $struct_name::default()
+            }
+        }
+
         impl_element!($struct_name, $tag_name);
 
         impl std::fmt::Display for Path {
