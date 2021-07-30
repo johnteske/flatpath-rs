@@ -15,14 +15,14 @@ impl Group {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::shape::path::Path;
+    use crate::shape::circle::Circle;
 
     #[test]
     fn group() {
         let mut g = Group::new();
-        let p = Path::new();
-        g = g.append(p);
+        let c = Circle::new();
+        g = g.append(c);
 
-        assert_eq!(g.to_string(), r#"<g />"#);
+        assert_eq!(g.to_string(), r#"<g><circle /></g>"#);
     }
 }

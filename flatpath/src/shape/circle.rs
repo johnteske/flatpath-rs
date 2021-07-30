@@ -19,8 +19,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn write() {
+    fn circle() {
         let c = Circle::new().r(1.);
-        assert_eq!(c.to_string(), "circle");
+        assert_eq!(c.to_string(), r#"<circle r="1" />"#);
     }
 }

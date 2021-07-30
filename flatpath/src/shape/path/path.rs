@@ -18,8 +18,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn write() {
+    fn path() {
         let p = Path::new().d("M0,0 L10,10");
-        assert_eq!(p.to_string(), "path");
+        assert_eq!(p.to_string(), r#"<path d="M0,0 L10,10" />"#);
     }
 }

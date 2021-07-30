@@ -32,6 +32,9 @@ mod tests {
         let p = Path::new();
         s = s.append(p);
 
-        assert_eq!(s.to_string(), r#"<svg />"#);
+        assert_eq!(
+            s.to_string(),
+            r#"<svg xmlns="http://www.w3.org/2000/svg"><path /></svg>"#
+        );
     }
 }

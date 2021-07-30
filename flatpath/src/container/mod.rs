@@ -25,9 +25,9 @@ macro_rules! impl_container(
 
         impl std::fmt::Display for $struct_name {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                write!(f, "<{} ", $tag_name)?;
+                write!(f, "<{}", $tag_name)?;
                 for (attr, value) in &self.attributes {
-                    write!(f, r#"{}="{}" "#, attr, value)?;
+                    write!(f, r#" {}="{}""#, attr, value)?;
                 }
                 write!(f, "{}", ">")?;
                 for child in &self.children {
