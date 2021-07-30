@@ -22,7 +22,7 @@ macro_rules! impl_shape(
 
         impl_element!($struct_name, $tag_name);
 
-        impl std::fmt::Display for Path {
+        impl std::fmt::Display for $struct_name {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 write!(f, "<{} ", $tag_name)?;
                 for (attr, value) in &self.attributes {
