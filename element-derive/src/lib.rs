@@ -1,19 +1,13 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn;
 use syn::{parse_macro_input, DeriveInput};
 use syn::{Data, DataStruct, Fields};
-//use syn::{Meta, Path};
 
-//#[proc_macro_derive(Element, attributes(attr))]
 #[proc_macro_derive(Element)]
 pub fn element_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
     let struct_name = input.ident;
-
-    //Meta(Path(word)) if word == SKIP_DESERIALIZING
-    // let inner_attrs = Attributes::parse_inner(input).unwrap();
 
     let fields = match input.data {
         Data::Struct(DataStruct {
@@ -24,19 +18,19 @@ pub fn element_derive(input: TokenStream) -> TokenStream {
     };
 
     let setters = fields.into_iter().map(|f| {
-        let field_name = f.ident;
+        let field_ident = f.ident;
+        let field_name = field_ident.clone().unwrap();
         let field_ty = f.ty;
 
-        // if ANY attribute exists, skip
-        if f.attrs.is_empty() {
+        if field_name == "children" || field_name == "xmlns" {
+            quote! {}
+        } else {
             quote! {
-                pub fn #field_name(mut self, value: #field_ty) -> Self {
-                    self.#field_name = value;
+                pub fn #field_ident(mut self, value: #field_ty) -> Self {
+                    self.#field_ident = value;
                     self
                 }
             }
-        } else {
-            quote! {}
         }
     });
 
@@ -57,6 +51,20 @@ pub fn container_derive(input: TokenStream) -> TokenStream {
 
     let struct_name = input.ident;
 
+    //let mut tag_name: Option<String> = None;
+    //    for option in input.attrs.into_iter() {
+    //        let option = option.parse_meta().unwrap();
+    //        match option {
+    //            Meta::NameValue(MetaNameValue {
+    //                ref ident, ref lit, ..
+    //            }) if ident == "tag_name" => {
+    //                if let Lit::Str(lit) = lit {
+    //                    tag_name = Some(lit.value());
+    //                }
+    //            }
+    //        }
+    //    }
+
     let tag_name = "TODO";
 
     let fields = match input.data {
@@ -67,11 +75,10 @@ pub fn container_derive(input: TokenStream) -> TokenStream {
         _ => panic!("this derive macro only works on structs with named fields"),
     };
 
-    let attribute_formatters = fields.into_iter().map(|f2| {
-        let field_name = f2.ident;
+    let attribute_formatters = fields.into_iter().map(|f| {
+        let field_name = f.ident;
 
-        // if ANY attribute exists, skip
-        if f2.attrs.is_empty() {
+        if field_name.clone().unwrap() != "children" {
             quote! {
                 write!(f, r#" {}="{}""#, stringify!(#field_name), &self.#field_name)?;
             }
@@ -90,18 +97,18 @@ pub fn container_derive(input: TokenStream) -> TokenStream {
                 self
             }
         }
-        // TODO serde serialize
+
         impl std::fmt::Display for #struct_name {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                // opening tag with attributes
                 write!(f, "<{}", #tag_name)?;
-
                 #(#attribute_formatters)*
-                //( #(#setters),* ) => {}
-
                 write!(f, "{}", ">")?;
+                // children
                 for child in &self.children {
                     write!(f, "{}", child)?;
                 }
+                // closing tag
                 write!(f, "</{}>", #tag_name)
             }
         }
