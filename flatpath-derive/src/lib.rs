@@ -65,7 +65,7 @@ pub fn container_derive(input: TokenStream) -> TokenStream {
     //        }
     //    }
 
-    let tag_name = "TODO";
+    let tag_name = format!("{}", struct_name.to_string().to_lowercase());
 
     let fields = match input.data {
         Data::Struct(DataStruct {
@@ -125,7 +125,7 @@ pub fn shape_derive(input: TokenStream) -> TokenStream {
 
     let struct_name = input.ident;
 
-    let tag_name = "TODO";
+    let tag_name = format!("{}", struct_name.to_string().to_lowercase());
 
     let fields = match input.data {
         Data::Struct(DataStruct {
