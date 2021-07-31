@@ -1,7 +1,7 @@
 use crate::unit::Number;
-use element_derive::Element;
+use flatpath_derive::{Element, Shape};
 
-#[derive(Element, Default)]
+#[derive(Element, Shape, Default)]
 pub struct Circle {
     r: Number,
 }

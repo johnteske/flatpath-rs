@@ -1,5 +1,5 @@
 [package]
-name = "element-derive"
+name = "flatpath-derive"
 version = "0.1.0"
 authors = ["John Teske <john.teske@protonmail.com>"]
 edition = "2018"
@@ -8,6 +8,7 @@ edition = "2018"
 proc-macro = true
 
 [dependencies]
+flatpath-core = { path = "../flatpath-core" }
 proc-macro2 = "1.0.28"
 quote = "1.0.9"
 syn = "1.0.74"

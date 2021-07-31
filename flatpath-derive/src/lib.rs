@@ -27,7 +27,9 @@ pub fn element_derive(input: TokenStream) -> TokenStream {
             let field_ident = f.ident;
             let field_ty = f.ty;
             quote! {
-                pub fn #field_ident(mut self, value: #field_ty) -> Self {
+                pub fn #field_ident(mut self, value: #field_ty) -> Self // {
+                where Self: Sized {
+
                     self.#field_ident = value;
                     self
                 }
@@ -35,8 +37,11 @@ pub fn element_derive(input: TokenStream) -> TokenStream {
         });
 
     (quote! {
+        impl flatpath_core::Element for #struct_name {}
+
         impl #struct_name {
-            pub fn new() -> Self {
+            pub fn new() -> Self //{
+                where Self: Sized {
                 #struct_name::default()
             }
             #(#setters)*
@@ -93,6 +98,7 @@ pub fn container_derive(input: TokenStream) -> TokenStream {
             pub fn append<T>(mut self, element: T) -> Self
             where
                 T: 'static + Element,
+                Self: Sized
             {
                 self.children.push(Box::new(element));
                 self
@@ -105,10 +111,12 @@ pub fn container_derive(input: TokenStream) -> TokenStream {
                 write!(f, "<{}", #tag_name)?;
                 #(#attribute_formatters)*
                 write!(f, "{}", ">")?;
+
                 // children
                 for child in &self.children {
                     write!(f, "{}", child)?;
                 }
+
                 // closing tag
                 write!(f, "</{}>", #tag_name)
             }
@@ -117,13 +125,42 @@ pub fn container_derive(input: TokenStream) -> TokenStream {
     .into()
 }
 
-// fn get_name_field() {
-//     let fields = match input.data {
-//         Data::Struct(DataStruct {
-//             fields: Fields::Named(fields),
-//             ..
-//         }) => fields.named,
-//         _ => panic!("this derive macro only works on structs with named fields"),
-//     };
-//     fields.filter attrs
-// }
+#[proc_macro_derive(Shape)]
+pub fn shape_derive(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+
+    let struct_name = input.ident;
+
+    let tag_name = "TODO";
+
+    let fields = match input.data {
+        Data::Struct(DataStruct {
+            fields: Fields::Named(fields),
+            ..
+        }) => fields.named,
+        _ => panic!("this derive macro only works on structs with named fields"),
+    };
+
+    let attribute_formatters = fields.into_iter().map(|f| {
+        let field_name = f.ident;
+        quote! {
+            write!(f, r#" {}="{}""#, stringify!(#field_name), &self.#field_name)?;
+        }
+    });
+
+    (quote! {
+        impl std::fmt::Display for #struct_name {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                // open tag
+                write!(f, "<{}", #tag_name)?;
+
+                // attributes
+                #(#attribute_formatters)*
+
+                // close tag
+                write!(f, "{}", "/>")
+            }
+        }
+    })
+    .into()
+}

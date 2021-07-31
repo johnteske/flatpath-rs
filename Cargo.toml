@@ -1,6 +1,8 @@
 [workspace]
 
 members = [
+  "flatpath-core",
+  "flatpath-derive",
   "flatpath",
   "projects",
 ]

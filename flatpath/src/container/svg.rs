@@ -1,15 +1,17 @@
-use crate::element::Element;
-use element_derive::{Container, Element};
+use flatpath_core::Element;
+use flatpath_derive::{Container, Element};
 
+//#[derive(Element, Container)]
 #[derive(Element, Container, Default)]
 pub struct Svg {
-    // #[doc = "skip"]
     xmlns: String,
-    #[doc = "skip"]
-    children: Vec<Box<dyn Element>>,
+    //children: Vec<Box<dyn std::fmt::Display>>,
+    children: Vec<Box<dyn flatpath_core::Element>>,
     // view_box: ()
 }
 
+//impl Default for Svg {
+//}
 // impl Svg {
 //     pub fn new() -> Self {
 //         let mut svg = Self::default();

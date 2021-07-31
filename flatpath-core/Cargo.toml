@@ -1,0 +1,5 @@
+[package]
+name = "flatpath-core"
+version = "0.1.0"
+authors = ["John Teske <john.teske@protonmail.com>"]
+edition = "2018"

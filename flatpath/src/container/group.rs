@@ -1,10 +1,9 @@
-use crate::element::Element;
-use element_derive::Element;
+use flatpath_core::Element;
+use flatpath_derive::{Container, Element};
 
-#[derive(Element, Default)]
+#[derive(Element, Container, Default)]
 pub struct Group {
-    #[doc = "skip"]
-    children: Vec<Box<dyn Element>>,
+    children: Vec<Box<dyn flatpath_core::Element>>,
 }
 
 #[cfg(test)]

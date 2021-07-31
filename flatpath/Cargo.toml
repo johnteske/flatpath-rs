@@ -5,5 +5,6 @@ authors = ["John Teske <john.teske@protonmail.com>"]
 edition = "2018"
 
 [dependencies]
-element-derive = { path = "../element-derive" }
+flatpath-core = { path = "../flatpath-core" }
+flatpath-derive = { path = "../flatpath-derive" }
 svg = "0.9.2"

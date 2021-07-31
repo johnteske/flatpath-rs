@@ -1,4 +1,4 @@
-pub trait Element: std::fmt::Display {}
+//pub trait Element: std::fmt::Display {}
 
 // #[macro_export]
 // macro_rules! impl_element(
