@@ -17,22 +17,22 @@ pub fn element_derive(input: TokenStream) -> TokenStream {
         _ => panic!("this derive macro only works on structs with named fields"),
     };
 
-    let setters = fields.into_iter().map(|f| {
-        let field_ident = f.ident;
-        let field_name = field_ident.clone().unwrap();
-        let field_ty = f.ty;
-
-        if field_name == "children" || field_name == "xmlns" {
-            quote! {}
-        } else {
+    let setters = fields
+        .into_iter()
+        .filter(|f| {
+            let field_name = f.ident.clone().unwrap();
+            field_name != "children" || field_name != "xmlns"
+        })
+        .map(|f| {
+            let field_ident = f.ident;
+            let field_ty = f.ty;
             quote! {
                 pub fn #field_ident(mut self, value: #field_ty) -> Self {
                     self.#field_ident = value;
                     self
                 }
             }
-        }
-    });
+        });
 
     (quote! {
         impl #struct_name {
@@ -75,17 +75,18 @@ pub fn container_derive(input: TokenStream) -> TokenStream {
         _ => panic!("this derive macro only works on structs with named fields"),
     };
 
-    let attribute_formatters = fields.into_iter().map(|f| {
-        let field_name = f.ident;
-
-        if field_name.clone().unwrap() != "children" {
+    let attribute_formatters = fields
+        .into_iter()
+        .filter(|f| {
+            let field_name = f.ident.clone().unwrap();
+            field_name != "children"
+        })
+        .map(|f| {
+            let field_name = f.ident;
             quote! {
                 write!(f, r#" {}="{}""#, stringify!(#field_name), &self.#field_name)?;
             }
-        } else {
-            quote! {}
-        }
-    });
+        });
 
     (quote! {
         impl #struct_name {
