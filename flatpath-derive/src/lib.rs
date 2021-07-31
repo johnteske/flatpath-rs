@@ -37,8 +37,6 @@ pub fn element_derive(input: TokenStream) -> TokenStream {
         });
 
     (quote! {
-        impl flatpath_core::Element for #struct_name {}
-
         impl #struct_name {
             pub fn new() -> Self //{
                 where Self: Sized {
@@ -97,7 +95,7 @@ pub fn container_derive(input: TokenStream) -> TokenStream {
         impl #struct_name {
             pub fn append<T>(mut self, element: T) -> Self
             where
-                T: 'static + Element,
+                T: 'static + flatpath_core::Child, // TODO lifetime
                 Self: Sized
             {
                 self.children.push(Box::new(element));

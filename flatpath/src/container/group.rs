@@ -1,10 +1,12 @@
-use flatpath_core::Element;
+use flatpath_core::Child;
 use flatpath_derive::{Container, Element};
 
 #[derive(Element, Container, Default)]
 pub struct Group {
-    children: Vec<Box<dyn flatpath_core::Element>>,
+    children: Vec<Box<dyn Child>>,
 }
+
+impl Child for Group {}
 
 #[cfg(test)]
 mod tests {

@@ -1,24 +1,21 @@
-use flatpath_core::Element;
+use flatpath_core::Child;
 use flatpath_derive::{Container, Element};
 
-//#[derive(Element, Container)]
-#[derive(Element, Container, Default)]
+#[derive(Element, Container)]
 pub struct Svg {
     xmlns: String,
-    //children: Vec<Box<dyn std::fmt::Display>>,
-    children: Vec<Box<dyn flatpath_core::Element>>,
+    children: Vec<Box<dyn Child>>,
     // view_box: ()
 }
 
-//impl Default for Svg {
-//}
-// impl Svg {
-//     pub fn new() -> Self {
-//         let mut svg = Self::default();
-//         svg.xmlns = "http://www.w3.org/2000/svg";
-//         svg
-//     }
-// }
+impl Default for Svg {
+    fn default() -> Self {
+        Svg {
+            xmlns: "http://www.w3.org/2000/svg".into(),
+            children: vec![],
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {

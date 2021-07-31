@@ -1,4 +1,5 @@
 use crate::unit::Number;
+use flatpath_core::Child;
 use flatpath_derive::{Element, Shape};
 
 #[derive(Element, Shape, Default)]
@@ -6,6 +7,8 @@ pub struct Rect {
     width: Number,
     height: Number,
 }
+
+impl Child for Rect {}
 
 #[cfg(test)]
 mod tests {
