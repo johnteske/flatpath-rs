@@ -1,16 +1,8 @@
-use std::collections::HashMap;
+use element_derive::Element;
 
-use crate::element::Element;
-use crate::impl_element;
-use crate::impl_shape;
-
-impl_shape!(Path, "path");
-
-impl Path {
-    pub fn d(mut self, s: &str) -> Self {
-        self.attr("d".to_string(), s.to_string());
-        self
-    }
+#[derive(Element, Default)]
+pub struct Path {
+    d: String,
 }
 
 #[cfg(test)]

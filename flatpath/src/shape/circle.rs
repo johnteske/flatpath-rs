@@ -1,17 +1,9 @@
-use std::collections::HashMap;
-
-use crate::element::Element;
-use crate::impl_element;
-use crate::impl_shape;
 use crate::unit::Number;
+use element_derive::Element;
 
-impl_shape!(Circle, "circle");
-
-impl Circle {
-    pub fn r(mut self, s: Number) -> Self {
-        self.attr("r".to_string(), s.to_string());
-        self
-    }
+#[derive(Element, Default)]
+pub struct Circle {
+    r: Number,
 }
 
 #[cfg(test)]
