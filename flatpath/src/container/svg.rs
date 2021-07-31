@@ -1,23 +1,20 @@
-use std::collections::HashMap;
-
 use crate::element::Element;
-use crate::impl_container;
-use crate::impl_element;
+use element_derive::{Container, Element};
 
-impl_container!(Svg, "svg");
-
-impl Svg {
-    pub fn new() -> Self {
-        let mut svg = Self::default();
-        svg.attr("xmlns", "http://www.w3.org/2000/svg");
-        svg
-    }
+#[derive(Element, Container, Default)]
+pub struct Svg {
+    // #[doc = "skip"]
+    xmlns: String,
+    #[doc = "skip"]
+    children: Vec<Box<dyn Element>>,
+    // view_box: ()
 }
 
 // impl Svg {
-//     pub fn view_box(mut self, s: TODO Rect or tuple of Number) -> Self {
-//         self.attr("viewBox".to_string(), s.to_string());
-//         self
+//     pub fn new() -> Self {
+//         let mut svg = Self::default();
+//         svg.xmlns = "http://www.w3.org/2000/svg";
+//         svg
 //     }
 // }
 

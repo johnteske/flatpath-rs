@@ -1,15 +1,10 @@
-use std::collections::HashMap;
-
 use crate::element::Element;
-use crate::impl_container;
-use crate::impl_element;
+use element_derive::Element;
 
-impl_container!(Group, "g");
-
-impl Group {
-    pub fn new() -> Self {
-        Group::default()
-    }
+#[derive(Element, Default)]
+pub struct Group {
+    #[doc = "skip"]
+    children: Vec<Box<dyn Element>>,
 }
 
 #[cfg(test)]
