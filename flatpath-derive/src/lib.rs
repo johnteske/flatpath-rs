@@ -1,3 +1,11 @@
+// TODO
+// DRY it up
+// look into serde Serializer over Display
+// camelCase attributes for viewBox
+// attribute to set tag_name
+// attributes to ignore field for setter
+// attributes to ignore field for serializer (use serde?)
+
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, DeriveInput};
