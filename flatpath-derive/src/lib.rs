@@ -17,29 +17,26 @@ pub fn element_derive(input: TokenStream) -> TokenStream {
         _ => panic!("this derive macro only works on structs with named fields"),
     };
 
-    let setters = fields
-        .into_iter()
-        .filter(|f| {
-            let field_name = f.ident.clone().unwrap();
-            field_name != "children" || field_name != "xmlns"
-        })
-        .map(|f| {
-            let field_ident = f.ident;
-            let field_ty = f.ty;
-            quote! {
-                pub fn #field_ident(mut self, value: #field_ty) -> Self // {
-                where Self: Sized {
+    let setters = fields.into_iter().filter_map(|f| {
+        let field_ident = &f.ident;
+        let field_name = &f.ident.clone().unwrap();
+        let field_ty = &f.ty;
 
+        if field_name == "children" || field_name == "xmlns" {
+            None
+        } else {
+            Some(quote! {
+                pub fn #field_ident(mut self, value: #field_ty) -> Self {
                     self.#field_ident = value;
                     self
                 }
-            }
-        });
+            })
+        }
+    });
 
     (quote! {
         impl #struct_name {
-            pub fn new() -> Self //{
-                where Self: Sized {
+            pub fn new() -> Self {
                 #struct_name::default()
             }
             #(#setters)*
@@ -78,25 +75,24 @@ pub fn container_derive(input: TokenStream) -> TokenStream {
         _ => panic!("this derive macro only works on structs with named fields"),
     };
 
-    let attribute_formatters = fields
-        .into_iter()
-        .filter(|f| {
-            let field_name = f.ident.clone().unwrap();
-            field_name != "children"
-        })
-        .map(|f| {
-            let field_name = f.ident;
-            quote! {
-                write!(f, r#" {}="{}""#, stringify!(#field_name), &self.#field_name)?;
-            }
-        });
+    let attribute_formatters = fields.into_iter().filter_map(|f| {
+        let field_ident = &f.ident;
+        let field_name = &f.ident.clone().unwrap();
+
+        if field_name == "children" {
+            None
+        } else {
+            Some(quote! {
+                write!(f, r#" {}="{}""#, stringify!(#field_ident), &self.#field_ident)?;
+            })
+        }
+    });
 
     (quote! {
         impl #struct_name {
             pub fn append<T>(mut self, element: T) -> Self
             where
-                T: 'static + flatpath_core::Child, // TODO lifetime
-                Self: Sized
+                T: 'static + flatpath_core::Child // TODO lifetime
             {
                 self.children.push(Box::new(element));
                 self
