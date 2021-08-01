@@ -2,7 +2,7 @@ use flatpath_core::Child;
 use flatpath_derive::{Container, Element};
 
 #[derive(Element, Container, Default)]
-//#[tag_name = "group"]
+#[tag_name("g")]
 pub struct Group {
     #[no_setter]
     #[no_write]

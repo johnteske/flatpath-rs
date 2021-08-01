@@ -2,9 +2,6 @@
 // DRY it up
 // look into serde Serializer over Display
 // camelCase attributes for viewBox
-// attribute to set tag_name
-// attributes to ignore field for setter
-// attributes to ignore field for serializer (use serde?)
 
 use proc_macro::TokenStream;
 use quote::quote;
@@ -52,19 +49,19 @@ pub fn element_derive(input: TokenStream) -> TokenStream {
     .into()
 }
 
-#[proc_macro_derive(Container, attributes(no_write))]
+#[proc_macro_derive(Container, attributes(tag_name, no_write))]
 pub fn container_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
     let struct_name = input.ident;
 
-    let /*mut*/ tag_name = format!("{}", struct_name.to_string().to_lowercase());
-    //for attr in input.attrs {
-    //    if attr.path.is_ident("tag_name") {
-    //        let lit: syn::LitInt = attr.parse_args().unwrap();
-    //        tag_name = lit.to_string();
-    //    }
-    //}
+    let mut tag_name = struct_name.to_string().to_lowercase();
+    for attr in input.attrs {
+        if attr.path.is_ident("tag_name") {
+            let lit: syn::LitStr = attr.parse_args().unwrap();
+            tag_name = lit.value();
+        }
+    }
 
     let fields = match input.data {
         Data::Struct(DataStruct {
@@ -123,7 +120,7 @@ pub fn shape_derive(input: TokenStream) -> TokenStream {
 
     let struct_name = input.ident;
 
-    let tag_name = format!("{}", struct_name.to_string().to_lowercase());
+    let tag_name = struct_name.to_string().to_lowercase();
 
     let fields = match input.data {
         Data::Struct(DataStruct {
