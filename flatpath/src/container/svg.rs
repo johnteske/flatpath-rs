@@ -3,9 +3,14 @@ use flatpath_derive::{Container, Element};
 
 #[derive(Element, Container)]
 pub struct Svg {
+    #[no_setter]
     xmlns: String,
+
+    #[no_setter]
+    #[no_write]
     children: Vec<Box<dyn Child>>,
-    // view_box: ()
+
+    view_box: String, // TODO
 }
 
 impl Default for Svg {
@@ -13,6 +18,7 @@ impl Default for Svg {
         Svg {
             xmlns: "http://www.w3.org/2000/svg".into(),
             children: vec![],
+            view_box: "".into(),
         }
     }
 }

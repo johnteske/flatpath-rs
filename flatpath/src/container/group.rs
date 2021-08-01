@@ -2,7 +2,10 @@ use flatpath_core::Child;
 use flatpath_derive::{Container, Element};
 
 #[derive(Element, Container, Default)]
+//#[tag_name = "group"]
 pub struct Group {
+    #[no_setter]
+    #[no_write]
     children: Vec<Box<dyn Child>>,
 }
 

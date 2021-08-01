@@ -11,7 +11,7 @@ use quote::quote;
 use syn::{parse_macro_input, DeriveInput};
 use syn::{Data, DataStruct, Fields};
 
-#[proc_macro_derive(Element)]
+#[proc_macro_derive(Element, attributes(no_setter))]
 pub fn element_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
@@ -27,10 +27,9 @@ pub fn element_derive(input: TokenStream) -> TokenStream {
 
     let setters = fields.into_iter().filter_map(|f| {
         let field_ident = &f.ident;
-        let field_name = &f.ident.clone().unwrap();
         let field_ty = &f.ty;
 
-        if field_name == "children" || field_name == "xmlns" {
+        if f.attrs.into_iter().any(|a| a.path.is_ident("no_setter")) {
             None
         } else {
             Some(quote! {
@@ -53,27 +52,19 @@ pub fn element_derive(input: TokenStream) -> TokenStream {
     .into()
 }
 
-#[proc_macro_derive(Container)]
+#[proc_macro_derive(Container, attributes(no_write))]
 pub fn container_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
     let struct_name = input.ident;
 
-    //let mut tag_name: Option<String> = None;
-    //    for option in input.attrs.into_iter() {
-    //        let option = option.parse_meta().unwrap();
-    //        match option {
-    //            Meta::NameValue(MetaNameValue {
-    //                ref ident, ref lit, ..
-    //            }) if ident == "tag_name" => {
-    //                if let Lit::Str(lit) = lit {
-    //                    tag_name = Some(lit.value());
-    //                }
-    //            }
-    //        }
+    let /*mut*/ tag_name = format!("{}", struct_name.to_string().to_lowercase());
+    //for attr in input.attrs {
+    //    if attr.path.is_ident("tag_name") {
+    //        let lit: syn::LitInt = attr.parse_args().unwrap();
+    //        tag_name = lit.to_string();
     //    }
-
-    let tag_name = format!("{}", struct_name.to_string().to_lowercase());
+    //}
 
     let fields = match input.data {
         Data::Struct(DataStruct {
@@ -85,9 +76,8 @@ pub fn container_derive(input: TokenStream) -> TokenStream {
 
     let attribute_formatters = fields.into_iter().filter_map(|f| {
         let field_ident = &f.ident;
-        let field_name = &f.ident.clone().unwrap();
 
-        if field_name == "children" {
+        if f.attrs.into_iter().any(|a| a.path.is_ident("no_write")) {
             None
         } else {
             Some(quote! {
