@@ -14,7 +14,7 @@ impl Child for Group {}
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::shape::circle::Circle;
+    use crate::shape::Circle;
 
     #[test]
     fn group() {
