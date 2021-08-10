@@ -6,27 +6,21 @@
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, DeriveInput};
-use syn::{Data, DataStruct, Fields};
+use syn::{Data, Fields, FieldsNamed};
 
 #[proc_macro_derive(Element, attributes(no_setter))]
 pub fn element_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
-    let struct_name = input.ident;
+    let struct_name = &input.ident;
 
-    let fields = match input.data {
-        Data::Struct(DataStruct {
-            fields: Fields::Named(fields),
-            ..
-        }) => fields.named,
-        _ => panic!("this derive macro only works on structs with named fields"),
-    };
+    let fields = named_fields(&input);
 
-    let setters = fields.into_iter().filter_map(|f| {
+    let setters = fields.named.iter().filter_map(|f| {
         let field_ident = &f.ident;
         let field_ty = &f.ty;
 
-        if f.attrs.into_iter().any(|a| a.path.is_ident("no_setter")) {
+        if f.attrs.iter().any(|a| a.path.is_ident("no_setter")) {
             None
         } else {
             Some(quote! {
@@ -53,28 +47,22 @@ pub fn element_derive(input: TokenStream) -> TokenStream {
 pub fn container_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
-    let struct_name = input.ident;
+    let struct_name = &input.ident;
 
     let mut tag_name = struct_name.to_string().to_lowercase();
-    for attr in input.attrs {
+    for attr in &input.attrs {
         if attr.path.is_ident("tag_name") {
             let lit: syn::LitStr = attr.parse_args().unwrap();
             tag_name = lit.value();
         }
     }
 
-    let fields = match input.data {
-        Data::Struct(DataStruct {
-            fields: Fields::Named(fields),
-            ..
-        }) => fields.named,
-        _ => panic!("this derive macro only works on structs with named fields"),
-    };
+    let fields = named_fields(&input);
 
-    let attribute_formatters = fields.into_iter().filter_map(|f| {
+    let attribute_formatters = fields.named.iter().filter_map(|f| {
         let field_ident = &f.ident;
 
-        if f.attrs.into_iter().any(|a| a.path.is_ident("no_write")) {
+        if f.attrs.iter().any(|a| a.path.is_ident("no_write")) {
             None
         } else {
             Some(quote! {
@@ -118,20 +106,14 @@ pub fn container_derive(input: TokenStream) -> TokenStream {
 pub fn shape_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
-    let struct_name = input.ident;
+    let struct_name = &input.ident;
 
     let tag_name = struct_name.to_string().to_lowercase();
 
-    let fields = match input.data {
-        Data::Struct(DataStruct {
-            fields: Fields::Named(fields),
-            ..
-        }) => fields.named,
-        _ => panic!("this derive macro only works on structs with named fields"),
-    };
+    let fields = named_fields(&input);
 
-    let attribute_formatters = fields.into_iter().map(|f| {
-        let field_name = f.ident;
+    let attribute_formatters = fields.named.iter().map(|f| {
+        let field_name = &f.ident;
         quote! {
             write!(f, r#" {}="{}""#, stringify!(#field_name), &self.#field_name)?;
         }
@@ -152,4 +134,15 @@ pub fn shape_derive(input: TokenStream) -> TokenStream {
         }
     })
     .into()
+}
+
+fn named_fields(input: &DeriveInput) -> &FieldsNamed {
+    const UNSUPPORTED: &str = "must use a struct with named fields";
+    match input.data {
+        Data::Struct(ref data) => match data.fields {
+            Fields::Named(ref fields) => fields,
+            _ => unimplemented!("{}", UNSUPPORTED),
+        },
+        _ => unimplemented!("{}", UNSUPPORTED),
+    }
 }
