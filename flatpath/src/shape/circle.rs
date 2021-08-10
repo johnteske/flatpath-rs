@@ -16,6 +16,6 @@ mod tests {
     #[test]
     fn circle() {
         let c = Circle::new().r(1.);
-        assert_eq!(c.to_string(), r#"<circle r="1" />"#);
+        assert_eq!(c.to_string(), r#"<circle r="1"/>"#);
     }
 }

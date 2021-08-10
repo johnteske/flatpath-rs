@@ -22,6 +22,6 @@ mod tests {
         let c = Circle::new();
         g = g.append(c);
 
-        assert_eq!(g.to_string(), r#"<g><circle /></g>"#);
+        assert_eq!(g.to_string(), r#"<g><circle r="0"/></g>"#);
     }
 }
