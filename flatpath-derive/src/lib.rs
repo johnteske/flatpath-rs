@@ -59,17 +59,7 @@ pub fn container_derive(input: TokenStream) -> TokenStream {
 
     let fields = named_fields(&input);
 
-    let attribute_formatters = fields.named.iter().filter_map(|f| {
-        let field_ident = &f.ident;
-
-        if f.attrs.iter().any(|a| a.path.is_ident("no_write")) {
-            None
-        } else {
-            Some(quote! {
-                write!(f, r#" {}="{}""#, stringify!(#field_ident), &self.#field_ident)?;
-            })
-        }
-    });
+    let attribute_formatters = make_attribute_formatters(fields).into_iter();
 
     (quote! {
         impl #struct_name {
@@ -102,7 +92,7 @@ pub fn container_derive(input: TokenStream) -> TokenStream {
     .into()
 }
 
-#[proc_macro_derive(Shape)]
+#[proc_macro_derive(Shape, attributes(no_write))]
 pub fn shape_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
@@ -112,12 +102,7 @@ pub fn shape_derive(input: TokenStream) -> TokenStream {
 
     let fields = named_fields(&input);
 
-    let attribute_formatters = fields.named.iter().map(|f| {
-        let field_name = &f.ident;
-        quote! {
-            write!(f, r#" {}="{}""#, stringify!(#field_name), &self.#field_name)?;
-        }
-    });
+    let attribute_formatters = make_attribute_formatters(fields).into_iter();
 
     (quote! {
         impl std::fmt::Display for #struct_name {
@@ -145,4 +130,23 @@ fn named_fields(input: &DeriveInput) -> &FieldsNamed {
         },
         _ => unimplemented!("{}", UNSUPPORTED),
     }
+}
+
+// Returns a Vec that is later turned into an Iter for now since the type signature is complicated
+fn make_attribute_formatters(fields: &FieldsNamed) -> Vec<proc_macro2::TokenStream> {
+    fields
+        .named
+        .iter()
+        .filter_map(|f| {
+            let field_ident = &f.ident;
+
+            if f.attrs.iter().any(|a| a.path.is_ident("no_write")) {
+                None
+            } else {
+                Some(quote! {
+                    write!(f, r#" {}="{}""#, stringify!(#field_ident), &self.#field_ident)?;
+                })
+            }
+        })
+        .collect::<Vec<proc_macro2::TokenStream>>()
 }
