@@ -6,21 +6,20 @@
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, DeriveInput};
-use syn::{Data, Fields, FieldsNamed};
+use syn::{Data, Field, Fields, FieldsNamed};
 
 #[proc_macro_derive(Element, attributes(no_setter))]
 pub fn element_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
     let struct_name = &input.ident;
-
     let fields = named_fields(&input);
 
     let setters = fields.named.iter().filter_map(|f| {
         let field_ident = &f.ident;
         let field_ty = &f.ty;
 
-        if f.attrs.iter().any(|a| a.path.is_ident("no_setter")) {
+        if field_has_attr(f, "no_setter") {
             None
         } else {
             Some(quote! {
@@ -47,16 +46,7 @@ pub fn element_derive(input: TokenStream) -> TokenStream {
 pub fn container_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
-    let struct_name = &input.ident;
-
-    let mut tag_name = struct_name.to_string().to_lowercase();
-    for attr in &input.attrs {
-        if attr.path.is_ident("tag_name") {
-            let lit: syn::LitStr = attr.parse_args().unwrap();
-            tag_name = lit.value();
-        }
-    }
-
+    let (struct_name, tag_name) = get_names(&input);
     let fields = named_fields(&input);
 
     let attribute_formatters = make_attribute_formatters(fields).into_iter();
@@ -92,14 +82,11 @@ pub fn container_derive(input: TokenStream) -> TokenStream {
     .into()
 }
 
-#[proc_macro_derive(Shape, attributes(no_write))]
+#[proc_macro_derive(Shape, attributes(tag_name, no_write))]
 pub fn shape_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
-    let struct_name = &input.ident;
-
-    let tag_name = struct_name.to_string().to_lowercase();
-
+    let (struct_name, tag_name) = get_names(&input);
     let fields = named_fields(&input);
 
     let attribute_formatters = make_attribute_formatters(fields).into_iter();
@@ -132,6 +119,10 @@ fn named_fields(input: &DeriveInput) -> &FieldsNamed {
     }
 }
 
+fn field_has_attr(f: &Field, name: &str) -> bool {
+    f.attrs.iter().any(|a| a.path.is_ident(name))
+}
+
 // Returns a Vec that is later turned into an Iter for now since the type signature is complicated
 fn make_attribute_formatters(fields: &FieldsNamed) -> Vec<proc_macro2::TokenStream> {
     fields
@@ -140,7 +131,7 @@ fn make_attribute_formatters(fields: &FieldsNamed) -> Vec<proc_macro2::TokenStre
         .filter_map(|f| {
             let field_ident = &f.ident;
 
-            if f.attrs.iter().any(|a| a.path.is_ident("no_write")) {
+            if field_has_attr(f, "no_write") {
                 None
             } else {
                 Some(quote! {
@@ -149,4 +140,16 @@ fn make_attribute_formatters(fields: &FieldsNamed) -> Vec<proc_macro2::TokenStre
             }
         })
         .collect::<Vec<proc_macro2::TokenStream>>()
+}
+
+fn get_names(input: &DeriveInput) -> (&proc_macro2::Ident, String) {
+    let struct_name = &input.ident;
+    let mut tag_name = struct_name.to_string().to_lowercase();
+    for attr in &input.attrs {
+        if attr.path.is_ident("tag_name") {
+            let lit: syn::LitStr = attr.parse_args().unwrap();
+            tag_name = lit.value();
+        }
+    }
+    (struct_name, tag_name)
 }
