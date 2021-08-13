@@ -33,11 +33,11 @@ impl DBuilder {
         DBuilder::default()
     }
 
-    pub fn add(self, point: (f32, f32)) -> Self {
-        self.add_r(point, 0.)
+    pub fn push(self, point: (f32, f32)) -> Self {
+        self.push_r(point, 0.)
     }
 
-    pub fn add_r(mut self, point: (f32, f32), radius: Radius) -> Self {
+    pub fn push_r(mut self, point: (f32, f32), radius: Radius) -> Self {
         let r = match radius {
             r if r == 0. => None,
             r if r > 0. => Some(r),
@@ -116,10 +116,10 @@ mod tests {
     #[test]
     fn without_start_end_radii() {
         let actual = DBuilder::new()
-            .add((0., 0.))
-            .add_r((50., 0.), 4.)
-            .add_r((50., 50.), 8.)
-            .add((0., 50.))
+            .push((0., 0.))
+            .push_r((50., 0.), 4.)
+            .push_r((50., 50.), 8.)
+            .push((0., 50.))
             .close();
         let expected = "M0,0 L46,0 Q50,0 50,4 L50,42 Q50,50 42,50 L0,50 Z";
         assert_eq!(actual, expected);
@@ -128,10 +128,10 @@ mod tests {
     #[test]
     fn with_start_radius() {
         let actual = DBuilder::new()
-            .add_r((0., 0.), 4.)
-            .add_r((50., 0.), 4.)
-            .add_r((50., 50.), 8.)
-            .add((0., 50.))
+            .push_r((0., 0.), 4.)
+            .push_r((50., 0.), 4.)
+            .push_r((50., 50.), 8.)
+            .push((0., 50.))
             .close();
         let expected = "M0,4 Q0,0 4,0 L46,0 Q50,0 50,4 L50,42 Q50,50 42,50 L0,50 Z";
         assert_eq!(actual, expected);
@@ -140,10 +140,10 @@ mod tests {
     #[test]
     fn with_end_radius() {
         let actual = DBuilder::new()
-            .add((0., 0.))
-            .add_r((50., 0.), 4.)
-            .add_r((50., 50.), 8.)
-            .add_r((0., 50.), 4.)
+            .push((0., 0.))
+            .push_r((50., 0.), 4.)
+            .push_r((50., 50.), 8.)
+            .push_r((0., 50.), 4.)
             .close();
         let expected = "M0,0 L46,0 Q50,0 50,4 L50,42 Q50,50 42,50 L4,50 Q0,50 0,46 Z";
         assert_eq!(actual, expected);
@@ -152,10 +152,10 @@ mod tests {
     #[test]
     fn with_start_end_radii() {
         let actual = DBuilder::new()
-            .add_r((0., 0.), 4.)
-            .add_r((50., 0.), 4.)
-            .add_r((50., 50.), 8.)
-            .add_r((0., 50.), 4.)
+            .push_r((0., 0.), 4.)
+            .push_r((50., 0.), 4.)
+            .push_r((50., 50.), 8.)
+            .push_r((0., 50.), 4.)
             .close();
         let expected = "M0,4 Q0,0 4,0 L46,0 Q50,0 50,4 L50,42 Q50,50 42,50 L4,50 Q0,50 0,46 Z";
         assert_eq!(actual, expected);
@@ -164,9 +164,9 @@ mod tests {
     #[test]
     fn map() {
         let actual = DBuilder::new()
-            .add((0., 0.))
-            .add_r((0., 10.), 5.)
-            .add((10., 10.))
+            .push((0., 0.))
+            .push_r((0., 10.), 5.)
+            .push((10., 10.))
             .map(|p| BuilderPoint { y: p.y + 5., ..*p })
             .build();
         let expected = "M0,5 L0,10 Q0,15 5,15 L10,15 ";

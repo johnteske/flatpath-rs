@@ -133,7 +133,7 @@ fn attribute_formatters(fields: &FieldsNamed) -> Vec<proc_macro2::TokenStream> {
                 .as_ref()
                 .expect("field should be named")
                 .to_string();
-            if let Some(ref attr) = f.attrs.iter().find(|a| a.path.is_ident("rename")) {
+            if let Some(attr) = f.attrs.iter().find(|a| a.path.is_ident("rename")) {
                 let lit: syn::LitStr = attr.parse_args().expect("could not parse rename");
                 attr_name = lit.value();
             }
