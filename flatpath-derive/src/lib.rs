@@ -15,20 +15,19 @@ pub fn element_derive(input: TokenStream) -> TokenStream {
     let struct_name = &input.ident;
     let fields = named_fields(&input);
 
-    let setters = fields.named.iter().filter_map(|f| {
-        let field_ident = &f.ident;
-        let field_ty = &f.ty;
+    let attr_setters = fields.named.iter().filter_map(|f| {
+        let Field { ident, ty, .. } = &f;
 
         if field_has_attr(f, "no_setter") {
-            None
-        } else {
-            Some(quote! {
-                pub fn #field_ident(mut self, value: #field_ty) -> Self {
-                    self.#field_ident = value;
-                    self
-                }
-            })
+            return None;
         }
+
+        Some(quote! {
+            pub fn #ident(mut self, value: #ty) -> Self {
+                self.#ident = value;
+                self
+            }
+        })
     });
 
     (quote! {
@@ -36,7 +35,7 @@ pub fn element_derive(input: TokenStream) -> TokenStream {
             pub fn new() -> Self {
                 #struct_name::default()
             }
-            #(#setters)*
+            #(#attr_setters)*
         }
     })
     .into()
@@ -49,7 +48,7 @@ pub fn container_derive(input: TokenStream) -> TokenStream {
     let (struct_name, tag_name) = get_names(&input);
     let fields = named_fields(&input);
 
-    let attribute_formatters = make_attribute_formatters(fields).into_iter();
+    let attr_formatters = attribute_formatters(fields).into_iter();
 
     (quote! {
         impl #struct_name {
@@ -66,7 +65,7 @@ pub fn container_derive(input: TokenStream) -> TokenStream {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 // opening tag with attributes
                 write!(f, "<{}", #tag_name)?;
-                #(#attribute_formatters)*
+                #(#attr_formatters)*
                 write!(f, "{}", ">")?;
 
                 // children
@@ -89,7 +88,7 @@ pub fn shape_derive(input: TokenStream) -> TokenStream {
     let (struct_name, tag_name) = get_names(&input);
     let fields = named_fields(&input);
 
-    let attribute_formatters = make_attribute_formatters(fields).into_iter();
+    let attr_formatters = attribute_formatters(fields).into_iter();
 
     (quote! {
         impl std::fmt::Display for #struct_name {
@@ -98,9 +97,9 @@ pub fn shape_derive(input: TokenStream) -> TokenStream {
                 write!(f, "<{}", #tag_name)?;
 
                 // attributes
-                #(#attribute_formatters)*
+                #(#attr_formatters)*
 
-                // close tag
+                // self-closing tag
                 write!(f, "{}", "/>")
             }
         }
@@ -124,7 +123,7 @@ fn field_has_attr(f: &Field, name: &str) -> bool {
 }
 
 // Returns a Vec that is later turned into an Iter for now since the type signature is complicated
-fn make_attribute_formatters(fields: &FieldsNamed) -> Vec<proc_macro2::TokenStream> {
+fn attribute_formatters(fields: &FieldsNamed) -> Vec<proc_macro2::TokenStream> {
     fields
         .named
         .iter()
@@ -132,18 +131,19 @@ fn make_attribute_formatters(fields: &FieldsNamed) -> Vec<proc_macro2::TokenStre
             let field_ident = &f.ident;
 
             if field_has_attr(f, "no_write") {
-                None
-            } else {
-                Some(quote! {
-                    write!(f, r#" {}="{}""#, stringify!(#field_ident), &self.#field_ident)?;
-                })
+                return None;
             }
+
+            Some(quote! {
+                write!(f, r#" {}="{}""#, stringify!(#field_ident), &self.#field_ident)?;
+            })
         })
         .collect::<Vec<proc_macro2::TokenStream>>()
 }
 
 fn get_names(input: &DeriveInput) -> (&proc_macro2::Ident, String) {
     let struct_name = &input.ident;
+
     let mut tag_name = struct_name.to_string().to_lowercase();
     for attr in &input.attrs {
         if attr.path.is_ident("tag_name") {
