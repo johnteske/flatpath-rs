@@ -1,8 +1,3 @@
-// TODO
-// DRY it up
-// look into serde Serializer over Display
-// camelCase attributes for viewBox
-
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, DeriveInput};
@@ -41,7 +36,7 @@ pub fn element_derive(input: TokenStream) -> TokenStream {
     .into()
 }
 
-#[proc_macro_derive(Container, attributes(tag_name, no_write))]
+#[proc_macro_derive(Container, attributes(tag_name, no_write, rename))]
 pub fn container_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
@@ -81,7 +76,7 @@ pub fn container_derive(input: TokenStream) -> TokenStream {
     .into()
 }
 
-#[proc_macro_derive(Shape, attributes(tag_name, no_write))]
+#[proc_macro_derive(Shape, attributes(tag_name, no_write, rename))]
 pub fn shape_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
@@ -134,8 +129,17 @@ fn attribute_formatters(fields: &FieldsNamed) -> Vec<proc_macro2::TokenStream> {
                 return None;
             }
 
+            let mut attr_name = field_ident
+                .as_ref()
+                .expect("field should be named")
+                .to_string();
+            if let Some(ref attr) = f.attrs.iter().find(|a| a.path.is_ident("rename")) {
+                let lit: syn::LitStr = attr.parse_args().expect("could not parse rename");
+                attr_name = lit.value();
+            }
+
             Some(quote! {
-                write!(f, r#" {}="{}""#, stringify!(#field_ident), &self.#field_ident)?;
+                write!(f, r#" {}="{}""#, #attr_name, &self.#field_ident)?;
             })
         })
         .collect::<Vec<proc_macro2::TokenStream>>()
@@ -147,7 +151,7 @@ fn get_names(input: &DeriveInput) -> (&proc_macro2::Ident, String) {
     let mut tag_name = struct_name.to_string().to_lowercase();
     for attr in &input.attrs {
         if attr.path.is_ident("tag_name") {
-            let lit: syn::LitStr = attr.parse_args().unwrap();
+            let lit: syn::LitStr = attr.parse_args().expect("could not parse tag_name");
             tag_name = lit.value();
         }
     }

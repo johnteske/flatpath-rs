@@ -10,6 +10,7 @@ pub struct Svg {
     #[no_write]
     children: Vec<Box<dyn Child>>,
 
+    #[rename("viewBox")]
     view_box: String, // TODO
 }
 
@@ -36,7 +37,7 @@ mod tests {
 
         assert_eq!(
             s.to_string(),
-            r#"<svg xmlns="http://www.w3.org/2000/svg"><path /></svg>"#
+            r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox=""><path d=""/></svg>"#
         );
     }
 }
