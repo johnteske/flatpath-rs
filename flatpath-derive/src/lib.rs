@@ -3,7 +3,7 @@ use quote::quote;
 use syn::{parse_macro_input, DeriveInput};
 use syn::{Data, Field, Fields, FieldsNamed};
 
-#[proc_macro_derive(Element, attributes(no_setter))]
+#[proc_macro_derive(Element, attributes(internal, skip_setter))]
 pub fn element_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
@@ -13,7 +13,7 @@ pub fn element_derive(input: TokenStream) -> TokenStream {
     let attr_setters = fields.named.iter().filter_map(|f| {
         let Field { ident, ty, .. } = &f;
 
-        if field_has_attr(f, "no_setter") {
+        if field_has_attr(f, "internal") || field_has_attr(f, "skip_setter") {
             return None;
         }
 
@@ -36,7 +36,7 @@ pub fn element_derive(input: TokenStream) -> TokenStream {
     .into()
 }
 
-#[proc_macro_derive(Container, attributes(tag_name, no_write, rename))]
+#[proc_macro_derive(Container, attributes(tag_name, internal, rename))]
 pub fn container_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
@@ -76,7 +76,7 @@ pub fn container_derive(input: TokenStream) -> TokenStream {
     .into()
 }
 
-#[proc_macro_derive(Shape, attributes(tag_name, no_write, rename))]
+#[proc_macro_derive(Shape, attributes(tag_name, internal, rename))]
 pub fn shape_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
@@ -125,7 +125,7 @@ fn attribute_formatters(fields: &FieldsNamed) -> Vec<proc_macro2::TokenStream> {
         .filter_map(|f| {
             let field_ident = &f.ident;
 
-            if field_has_attr(f, "no_write") {
+            if field_has_attr(f, "internal") {
                 return None;
             }
 

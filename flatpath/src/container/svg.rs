@@ -3,12 +3,11 @@ use flatpath_derive::{Container, Element};
 
 #[derive(Element, Container)]
 pub struct Svg {
-    #[no_setter]
-    xmlns: String,
-
-    #[no_setter]
-    #[no_write]
+    #[internal]
     children: Vec<Box<dyn Child>>,
+
+    #[skip_setter]
+    xmlns: String,
 
     #[rename("viewBox")]
     view_box: String, // TODO
