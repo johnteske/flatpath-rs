@@ -3,6 +3,9 @@ use quote::quote;
 use syn::{parse_macro_input, DeriveInput};
 use syn::{Data, Field, Fields, FieldsNamed};
 
+// Using "derive" isn't quite correct--
+// but I need the attribute helpers it provides
+
 #[proc_macro_derive(Element, attributes(internal, skip_setter))]
 pub fn element_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
