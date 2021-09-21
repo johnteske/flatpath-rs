@@ -37,7 +37,7 @@ pub fn project() -> Document {
     let mut left = Group::new()
         .set("fill", "none")
         .set("stroke", "black")
-        .set("stroke-width", 0);
+        .set("stroke-width", 1);
 
     let left_data = PathBuilder::new()
         .add_r((0., 0.), outer_corner_radius)
@@ -93,7 +93,7 @@ pub fn project() -> Document {
     ));
 
     Document::new()
-        .set("viewBox", (0, 0, left_width_bot, height))
+        .set("viewBox", (0, -70, left_width_bot, height + 70.))
         .add(left)
 }
 
