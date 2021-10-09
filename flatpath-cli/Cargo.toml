@@ -6,4 +6,4 @@ edition = "2018"
 
 [dependencies]
 projects = { path = "../projects" }
-clap = "2.33.3"
+clap = { version = "2.33.3", default-features = false }

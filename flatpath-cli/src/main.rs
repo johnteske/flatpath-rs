@@ -1,18 +1,12 @@
-use clap::{App, Arg, SubCommand};
+use clap::{App, AppSettings, SubCommand};
 
 fn main() {
     let projects = projects::projects();
 
     let matches = App::new("flatpath-cli")
-        .arg(
-            Arg::with_name("project")
-                .short("p")
-                .long("project")
-                .value_name("NAME")
-                .help("PROject")
-                .takes_value(true),
-        )
-        .subcommand(SubCommand::with_name("list").about("list projects"))
+        .setting(AppSettings::ArgRequiredElseHelp)
+        .arg_from_usage("-p, --project=[KEY], 'Generates project by key'")
+        .subcommand(SubCommand::with_name("list").about("List projects"))
         .get_matches();
 
     if matches.subcommand_matches("list").is_some() {
@@ -23,8 +17,10 @@ fn main() {
     }
 
     match matches.value_of("project") {
-        Some(project) => {
-            let p = projects.get(&project).unwrap();
+        Some(project_key) => {
+            let p = projects
+                .get(&project_key)
+                .unwrap_or_else(|| panic!("no project with key: {}", project_key));
             projects::save(&**p).expect("error saving");
         }
         None => {
