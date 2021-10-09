@@ -2,5 +2,6 @@
 
 members = [
   "flatpath",
+  "flatpath-cli",
   "projects",
 ]

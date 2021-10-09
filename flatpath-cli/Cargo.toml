@@ -1,0 +1,8 @@
+[package]
+name = "flatpath-cli"
+version = "0.0.0"
+authors = ["John Teske <john.teske@protonmail.com>"]
+edition = "2018"
+
+[dependencies]
+projects = { path = "../projects" }
