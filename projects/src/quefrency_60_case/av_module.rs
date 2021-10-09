@@ -13,7 +13,7 @@ impl AVModule {
     pub fn new(padding: f32) -> Self {
         let component_w = vec![12., 13., 12., 51.];
         let sum: f32 = mm(component_w.iter().sum());
-        let total_padding = (component_w.len() + 1) as f32 * padding;
+        let total_padding = (component_w.len() - 1) as f32 * padding;
         let width = sum + total_padding;
 
         let height = mm(12.);
@@ -26,7 +26,7 @@ impl AVModule {
         }
     }
 
-    pub fn render(self) -> Group {
+    pub fn render(&self) -> Group {
         let mut g = Group::new();
 
         // module outline
@@ -101,7 +101,7 @@ impl AVModule {
             },
         ];
 
-        let mut x = self.padding;
+        let mut x = 0.;
         for c in components {
             g = g.add(c.element.set("transform", format!("translate({}, 0)", x)));
             x += c.width;

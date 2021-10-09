@@ -6,6 +6,39 @@ use flatpath::unit::mm;
 
 mod av_module;
 
+type Point = (f32, f32);
+
+#[derive(Default)]
+struct SideBuilder {
+    path: String,
+    holes: Vec<Point>,
+}
+impl SideBuilder {
+    fn new() -> Self {
+        SideBuilder::default()
+    }
+
+    fn to_group(self) -> Group {
+        let mut g = Group::new()
+            .set("fill", "none")
+            .set("stroke", "black")
+            .set("stroke-width", 1);
+
+        g = g.add(Path::new().set("d", self.path));
+
+        for point in self.holes {
+            g = g.add(
+                Circle::new()
+                    .set("r", mm(1.1))
+                    .set("cx", point.0)
+                    .set("cy", point.1),
+            );
+        }
+
+        g
+    }
+}
+
 // RIGHT SIDE
 // width, top 160.4
 // width, bot 155.638 (.6375?)
@@ -34,12 +67,9 @@ pub fn project() -> Document {
     let alm_lead = thickness; // TODO rename, this is the lead-in/out/curve to the main body
     let alm_x = thickness * 2.;
 
-    let mut left = Group::new()
-        .set("fill", "none")
-        .set("stroke", "black")
-        .set("stroke-width", 1);
+    let mut left = SideBuilder::new();
 
-    let left_data = PathBuilder::new()
+    left.path = PathBuilder::new()
         .add_r((0., 0.), outer_corner_radius)
         // audio/LED module
         .add_r((alm_x - alm_lead, 0.), inner_corner_radius)
@@ -59,10 +89,7 @@ pub fn project() -> Document {
         .add_r((0., height), outer_corner_radius)
         .close();
 
-    left = left.add(Path::new().set("d", left_data));
-
-    // in mm
-    let holes = vec![
+    left.holes = vec![
         (4.6, 4.6),       // top left
         (70.65, 4.0),     // top edge
         (137.35, 4.0),    // top right
@@ -70,45 +97,18 @@ pub fn project() -> Document {
         (4.6, 106.65),    // left bottom
         (73.05, 107.250), // bottom edge
         (142.11, 107.25), // bottom right
-    ];
-
-    for p in holes {
-        left = left.add(
-            Circle::new()
-                .set("r", mm(1.1))
-                .set("cx", mm(p.0))
-                .set("cy", mm(p.1)),
-        );
-    }
+    ]
+    .iter()
+    .map(|p| (mm(p.0), mm(p.1)))
+    .collect();
 
     // module
-    let avm_height = avm.height;
-    left = left.add(avm.render().set(
-        "transform",
-        format!(
-            "translate({},{})",
-            thickness * 2.,
-            -inner_corner_radius - avm_height
-        ),
-    ));
+    let left_g = left.to_group().add(
+        avm.render()
+            .set("transform", format!("translate({},{})", alm_x, -avm.height)),
+    );
 
     Document::new()
         .set("viewBox", (0, -70, left_width_bot, height + 70.))
-        .add(left)
+        .add(left_g)
 }
-
-//fn with_mounting_holes(group: Group, points: Vec<Point>) -> Group {
-//    let mut new_group;
-//    for p in points {
-//        new_group = group.add(
-//            Circle::new()
-//                .set("r", mm(1.1))
-//                .set("cx", mm(p.0))
-//                .set("cy", mm(p.1))
-//                .set("fill", "none")
-//                .set("stroke", "black")
-//                .set("stroke-width", 0),
-//        );
-//    }
-//    new_group
-//}
