@@ -3,6 +3,7 @@ use std::io;
 
 mod plant_ladder;
 mod quefrency_60_case;
+mod small_rack;
 
 pub trait Project {
     fn generate(&self) -> svg::Document;
@@ -17,6 +18,7 @@ pub fn projects<'a>() -> Projects<'a> {
         "quefrency-60-case",
         Box::new(quefrency_60_case::KeyboardCase),
     );
+    projects.insert("small-rack", Box::new(small_rack::SmallRack));
     projects
 }
 
