@@ -112,8 +112,50 @@ impl Project for KeyboardCase {
                 .set("transform", format!("translate({},{})", alm_x, -avm.height)),
         );
 
+        let right_w_top = mm(160.4);
+        let right_w_bot = mm(155.6375);
+        let mut right = SideBuilder::new();
+        right.path = PathBuilder::new()
+            .add_r((-right_w_top, 0.), inner_corner_radius)
+            .add_r((0., 0.), outer_corner_radius)
+            .add_r((0., height), outer_corner_radius)
+            .add_r((-right_w_bot, height), inner_corner_radius)
+            .add_r((-right_w_bot, height - thickness), inner_corner_radius)
+            .add_r((-thickness, height - thickness), inner_corner_radius)
+            .add_r((-thickness, thickness), inner_corner_radius)
+            .add_r((-right_w_top, thickness), inner_corner_radius)
+            .close();
+
+        // MEASURED FROM RIGHT EDGE
+        right.holes = vec![
+            (-4.6, 4.6),       // top left
+            (-80.5, 4.0),      // top edge
+            (-156.4, 4.0),     // top right
+            (-4.0, 55.625),    // left edge
+            (-4.6, 106.65),    // left bottom
+            (-78.12, 107.25),  // bottom edge
+            (-151.64, 107.25), // bottom right
+        ]
+        .iter()
+        .map(|p| (mm(p.0), mm(p.1)))
+        .collect();
+
+        let right_g = right.to_group();
+
         Document::new()
-            .set("viewBox", (0, -70, left_width_bot, height + 70.))
+            .set(
+                "viewBox",
+                (
+                    0,
+                    -70,
+                    left_width_bot + thickness + right_w_top,
+                    height + 70.,
+                ),
+            )
             .add(left_g)
+            .add(right_g.set(
+                "transform",
+                format!("translate({}, 0)", left_width_bot + thickness + right_w_top),
+            ))
     }
 }
