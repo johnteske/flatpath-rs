@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::io;
 
+mod frame_brain_box;
 mod keychain;
 mod lattice;
 mod plant_ladder;
@@ -23,6 +24,7 @@ pub fn projects<'a>() -> Projects<'a> {
     projects.insert("small-rack", Box::new(small_rack::SmallRack));
     projects.insert("lattice", Box::new(lattice::Lattice));
     projects.insert("keychain", Box::new(keychain::Keychain));
+    projects.insert("frame_brain_box", Box::new(frame_brain_box::BrainBox));
     projects
 }
 
