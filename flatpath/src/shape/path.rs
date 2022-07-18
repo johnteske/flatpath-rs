@@ -1,6 +1,7 @@
 use crate::unit::{Number, PositiveNormalNumber};
 use svg::node::element::Path;
 
+#[derive(Debug, Clone)]
 pub enum Command {
     MoveTo(Point),
     LineTo(Point),
@@ -18,6 +19,7 @@ impl Command {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct Point(Number, Number);
 impl Point {
     pub fn new(x: Number, y: Number) -> Self {
@@ -39,7 +41,7 @@ impl From<(Number, Number)> for Point {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Debug, Clone)]
 pub struct PathBuilder(Vec<Command>);
 
 impl PathBuilder {
@@ -111,8 +113,33 @@ impl PathBuilder {
         Path::new().set("d", self.build())
     }
 
-    pub fn map(&self, f: impl FnMut(&Command) -> Command) -> Self {
-        self.0.iter().map(f).collect()
+    pub fn iter(&self) -> std::slice::Iter<'_, Command> {
+        self.0.iter()
+    }
+    pub fn into_iter(self) -> std::vec::IntoIter<Command> {
+        self.0.into_iter()
+    }
+
+    pub fn map(&self, mut f: impl FnMut(&Point) -> Point) -> Self {
+        self.0
+            .iter()
+            .map(|cmd| match cmd {
+                Command::MoveTo(point) => Command::MoveTo(f(point)),
+                Command::LineTo(point) => Command::LineTo(f(point)),
+                Command::LineToWithRadius(point, radius) => {
+                    Command::LineToWithRadius(f(point), *radius)
+                }
+                Command::Close => Command::Close,
+            })
+            .collect()
+    }
+
+    pub fn extend<T>(mut self, iter: T) -> Self
+    where
+        T: IntoIterator<Item = Command>,
+    {
+        self.0.extend(iter);
+        self
     }
 }
 
