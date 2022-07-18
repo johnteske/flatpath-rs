@@ -3,7 +3,7 @@ use svg::node::element::{Group, Path, Rectangle};
 use svg::Document;
 
 use flatpath::shape::path::PathBuilder;
-use flatpath::unit::{inches, mm, Number};
+use flatpath::unit::{inches, mm, Number, PositiveNormalNumber};
 
 pub struct PlantLadder;
 impl Project for PlantLadder {
@@ -19,7 +19,7 @@ impl Project for PlantLadder {
         let side_height = (num_rungs as Number * t) + ((num_rungs as Number + 1.) * rung_spacing);
         let rung_depth = side_width - (t * 2.0);
         let rung_tab_depth = rung_depth / 2.0;
-        let corner_radius = mm(1.0); // soften the outer edges a little
+        let corner_radius = PositiveNormalNumber::new(mm(1.0)).unwrap(); // soften the outer edges a little
 
         let mut g = Group::new()
             .set("fill", "none")
@@ -30,8 +30,8 @@ impl Project for PlantLadder {
             Rectangle::new()
                 .set("width", side_width)
                 .set("height", side_height)
-                .set("rx", corner_radius)
-                .set("ry", corner_radius),
+                .set("rx", corner_radius.get())
+                .set("ry", corner_radius.get()),
         );
 
         for i in 0..num_rungs {

@@ -1,7 +1,10 @@
+use crate::unit::{Number, PositiveNormalNumber};
+use svg::node::element::Path;
+
 pub enum Command {
     MoveTo(Point),
     LineTo(Point),
-    LineToWithRadius(Point, Radius),
+    LineToWithRadius(Point, PositiveNormalNumber),
     Close,
 }
 impl Command {
@@ -15,19 +18,26 @@ impl Command {
     }
 }
 
-pub struct Point(f32, f32);
+pub struct Point(Number, Number);
 impl Point {
+    pub fn new(x: Number, y: Number) -> Self {
+        Self(x, y)
+    }
+    pub fn x(&self) -> Number {
+        self.0
+    }
+    pub fn y(&self) -> Number {
+        self.1
+    }
     fn to_svg_string(&self) -> String {
         format!("{},{}", self.0, self.1)
     }
 }
-impl From<(f32, f32)> for Point {
-    fn from((x, y): (f32, f32)) -> Self {
+impl From<(Number, Number)> for Point {
+    fn from((x, y): (Number, Number)) -> Self {
         Point(x, y)
     }
 }
-
-type Radius = f32;
 
 #[derive(Default)]
 pub struct PathBuilder(Vec<Command>);
@@ -47,8 +57,7 @@ impl PathBuilder {
         self
     }
 
-    pub fn line_to_r(mut self, point: impl Into<Point>, radius: Radius) -> Self {
-        assert!(radius >= 0., "radius must be > 0");
+    pub fn line_to_r(mut self, point: impl Into<Point>, radius: PositiveNormalNumber) -> Self {
         self.0.push(Command::LineToWithRadius(point.into(), radius));
         self
     }
@@ -79,10 +88,10 @@ impl PathBuilder {
                     let previous_point = self.0[i - 1].point().expect(TODO);
                     let next_point = self.0[i + 1].point().expect(TODO);
 
-                    let prev_point = point_along_line(&point, previous_point, *radius);
+                    let prev_point = point_along_line(&point, previous_point, radius.get());
                     data.push_str(&format!("L{} ", prev_point.to_svg_string()));
 
-                    let next_point = point_along_line(&point, next_point, *radius);
+                    let next_point = point_along_line(&point, next_point, radius.get());
                     data.push_str(&format!(
                         "Q{} {}",
                         point.to_svg_string(),
@@ -97,13 +106,34 @@ impl PathBuilder {
 
         data
     }
+
+    pub fn to_path(&self) -> Path {
+        Path::new().set("d", self.build())
+    }
+
+    pub fn map(&self, f: impl FnMut(&Command) -> Command) -> Self {
+        self.0.iter().map(f).collect()
+    }
 }
 
-fn point_along_line(p0: &Point, p1: &Point, dt: f32) -> Point {
-    let x0 = p0.0;
-    let y0 = p0.1;
-    let x1 = p1.0;
-    let y1 = p1.1;
+impl std::iter::FromIterator<Command> for PathBuilder {
+    fn from_iter<T>(iter: T) -> Self
+    where
+        T: IntoIterator<Item = Command>,
+    {
+        let mut commands = Vec::new();
+
+        for i in iter {
+            commands.push(i);
+        }
+
+        PathBuilder(commands)
+    }
+}
+
+fn point_along_line(p0: &Point, p1: &Point, dt: Number) -> Point {
+    let Point(x0, y0) = p0;
+    let Point(x1, y1) = p1;
 
     let d = ((x1 - x0).powf(2.) + (y1 - y0).powf(2.)).sqrt();
     let t = dt / d;
@@ -122,8 +152,8 @@ mod tests {
     fn without_start_end_radii() {
         let actual = PathBuilder::new()
             .move_to((0., 0.))
-            .line_to_r(Point(50., 0.), 4.)
-            .line_to_r(Point(50., 50.), 8.)
+            .line_to_r(Point(50., 0.), PositiveNormalNumber::new(4.).unwrap())
+            .line_to_r(Point(50., 50.), PositiveNormalNumber::new(8.).unwrap())
             .line_to(Point(0., 50.))
             .close()
             .build();
