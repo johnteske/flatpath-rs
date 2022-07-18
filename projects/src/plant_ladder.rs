@@ -48,22 +48,23 @@ impl Project for PlantLadder {
 
         let rung_data = PathBuilder::new()
             // top edge
-            .add((t, 0.))
-            .add((t + rung_width, 0.))
-            .add((t + rung_width, rung_depth * 0.25))
+            .line_to((t, 0.))
+            .line_to((t + rung_width, 0.))
+            .line_to((t + rung_width, rung_depth * 0.25))
             // right tab
-            .add_r((t + rung_width + t, rung_depth * 0.25), corner_radius)
-            .add_r((t + rung_width + t, rung_depth * 0.75), corner_radius)
-            .add((t + rung_width, rung_depth * 0.75))
+            .line_to_r((t + rung_width + t, rung_depth * 0.25), corner_radius)
+            .line_to_r((t + rung_width + t, rung_depth * 0.75), corner_radius)
+            .line_to((t + rung_width, rung_depth * 0.75))
             // bottom edge
-            .add((t + rung_width, rung_depth))
-            .add((t, rung_depth))
-            .add((t, rung_depth * 0.75))
+            .line_to((t + rung_width, rung_depth))
+            .line_to((t, rung_depth))
+            .line_to((t, rung_depth * 0.75))
             // left tab
-            .add_r((0., rung_depth * 0.75), corner_radius)
-            .add_r((0., rung_depth * 0.25), corner_radius)
-            .add((t, rung_depth * 0.25))
-            .close();
+            .line_to_r((0., rung_depth * 0.75), corner_radius)
+            .line_to_r((0., rung_depth * 0.25), corner_radius)
+            .line_to((t, rung_depth * 0.25))
+            .close()
+            .build();
 
         g = g.add(Path::new().set("d", rung_data).set(
             "transform",
