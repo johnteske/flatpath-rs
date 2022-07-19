@@ -10,7 +10,7 @@ use svg::node::element::{Group, Rectangle};
 use svg::Document;
 
 use flatpath::mortise_tenon::MortiseAndTenon;
-use flatpath::shape::path::{Command, PathBuilder, Point};
+use flatpath::shape::path::{PathBuilder, Point};
 use flatpath::unit::{inches, mm, PositiveNormalNumber};
 
 struct GroupPair {
@@ -29,6 +29,7 @@ impl Project for BrainBox {
         let width = inches(3.75);
         let height = inches(9.);
         let depth = inches(1.5);
+        let foot_height = inches(0.75);
 
         let overhang = 2. * t;
 
@@ -105,46 +106,44 @@ impl Project for BrainBox {
                 // flip X
                 .map(|point| (-point.x() + fifth_width, point.y()).into());
 
+            let half = PathBuilder::new()
+                // top
+                .extend(
+                    long_joint
+                        .clone()
+                        .tenon()
+                        .map(|point| (overhang + (fifth_width * 3.) + point.x(), point.y()).into())
+                        .into_iter(),
+                )
+                .line_to((w, 0.))
+                // right
+                .line_to((w, height))
+                // bottom
+                .line_to_r((w - t, height), tenon_corner_radius)
+                .line_to((w - t, height - foot_height / 2.))
+                .line_to((w - t - t, height - foot_height / 2.))
+                .line_to_r((w - t - t, height), tenon_corner_radius)
+                .extend(
+                    bottom_tenon
+                        .map(|point| {
+                            (
+                                point.x() + overhang + (fifth_width * 3.),
+                                point.y() + height,
+                            )
+                                .into()
+                        })
+                        .into_iter(),
+                )
+                .line_to((w / 2., height));
             g = g.add(
                 PathBuilder::new()
-                    .move_to((0., 0.))
+                    .move_to((w / 2., 0.))
+                    .extend(half.clone().into_iter())
                     .extend(
-                        long_joint
-                            .clone()
-                            .tenon()
-                            .map(|point| (overhang + fifth_width + point.x(), point.y()).into())
-                            .into_iter(),
+                        half.map(|point| (-point.x() + w, point.y()).into())
+                            .into_iter()
+                            .rev(),
                     )
-                    .extend(
-                        long_joint
-                            .clone()
-                            .tenon()
-                            .map(|point| {
-                                (overhang + (fifth_width * 3.) + point.x(), point.y()).into()
-                            })
-                            .into_iter(),
-                    )
-                    .line_to((w, 0.))
-                    .line_to((w, height))
-                    .extend(
-                        bottom_tenon
-                            .map(|point| {
-                                (
-                                    point.x() + overhang + (fifth_width * 3.),
-                                    point.y() + height,
-                                )
-                                    .into()
-                            })
-                            .into_iter(),
-                    )
-                    .extend(
-                        bottom_tenon
-                            .map(|point| {
-                                (point.x() + overhang + fifth_width, point.y() + height).into()
-                            })
-                            .into_iter(),
-                    )
-                    .line_to((0., height))
                     .close()
                     .to_path(),
             );
@@ -155,8 +154,57 @@ impl Project for BrainBox {
             }
         };
 
-        for (i, pair) in [top_bottom, front_back].iter().enumerate() {
-            let position = format!("translate({}, 0)", i as f32 * (width + 100.));
+        let foot = {
+            let footprint = foot_height;
+            let half = PathBuilder::new()
+                .line_to((0., foot_height / 2.))
+                .line_to((-t, foot_height / 2.))
+                .line_to_r((-t, 0.), tenon_corner_radius)
+                .line_to_r((-overhang, 0.), corner_radius)
+                .line_to_r((-overhang - footprint, foot_height), corner_radius)
+                .line_to_r((-overhang - footprint, foot_height + t), corner_radius)
+                .line_to_r((-overhang, foot_height + t), tenon_corner_radius)
+                .line_to((-overhang, foot_height))
+                .line_to((third_depth, foot_height))
+                .line_to_r((third_depth, foot_height + t), corner_radius)
+                .line_to((depth / 2., foot_height + t));
+
+            let foot = half.clone().extend(
+                half.clone()
+                    .map(|point| (-point.x() + depth, point.y()).into())
+                    .into_iter()
+                    .rev(),
+            );
+            foot
+        };
+
+        let cable_side = {
+            let debug_g = Group::new().add(
+                Rectangle::new()
+                    .set("width", depth)
+                    .set("height", foot_height),
+            );
+            let mut cut = Group::new();
+
+            cut = cut.add(
+                PathBuilder::new()
+                    .move_to((0., 0.))
+                    .extend(foot.clone().into_iter())
+                    .line_to((depth, 0.))
+                    .close()
+                    .to_path(),
+            );
+
+            //cut = cut.add();
+
+            GroupPair {
+                cut,
+                debug: debug_g,
+            }
+        };
+
+        for (i, pair) in [top_bottom, front_back, cable_side].iter().enumerate() {
+            let position = format!("translate({}, 0)", i as f32 * (width + inches(1.5)));
 
             let transform = match pair.cut.get_inner().get_attributes().get("transform") {
                 Some(transform) => format!("{} {}", transform, position.clone()),
@@ -172,7 +220,7 @@ impl Project for BrainBox {
         }
 
         Document::new()
-            .set("viewBox", ("0", "0", "999", "999"))
+            .set("viewBox", ("0", "0", "1999", "999"))
             .add(debug)
             .add(g)
     }
@@ -180,7 +228,4 @@ impl Project for BrainBox {
 
 fn rotate90(builder: &PathBuilder) -> PathBuilder {
     builder.map(|point| (-point.y(), point.x()).into())
-}
-fn rotate180(builder: &PathBuilder) -> PathBuilder {
-    builder.map(|point| (point.x(), point.y()).into())
 }
