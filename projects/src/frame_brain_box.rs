@@ -77,7 +77,7 @@ impl Project for BrainBox {
                 );
             }
 
-            let mortise = rotate90(&short_joint.mortise()).to_path();
+            let mortise = rotate90(&short_joint.clone().mortise()).to_path();
             for (x, y) in [(0., 0.), (width + t, 0.)] {
                 g = g.add(mortise.clone().set(
                     "transform",
@@ -179,11 +179,18 @@ impl Project for BrainBox {
         };
 
         let cable_side = {
-            let debug_g = Group::new().add(
-                Rectangle::new()
-                    .set("width", depth)
-                    .set("height", foot_height),
-            );
+            let debug_g = Group::new()
+                .add(
+                    Rectangle::new()
+                        .set("width", depth)
+                        .set("height", foot_height),
+                )
+                .add(
+                    Rectangle::new()
+                        .set("width", depth + overhang * 2.)
+                        .set("height", foot_height + t)
+                        .set("transform", format!("translate({},0)", -overhang)),
+                );
             let mut cut = Group::new();
 
             cut = cut.add(
@@ -195,7 +202,43 @@ impl Project for BrainBox {
                     .to_path(),
             );
 
-            //cut = cut.add();
+            GroupPair {
+                cut,
+                debug: debug_g,
+            }
+        };
+
+        let non_cable_side = {
+            let debug_g = Group::new()
+                .add(Rectangle::new().set("width", depth).set("height", height))
+                .add(
+                    Rectangle::new()
+                        .set("width", depth + overhang * 2.)
+                        .set("height", height + t)
+                        .set("transform", format!("translate({},0)", -overhang)),
+                );
+            let mut cut = Group::new();
+
+            cut = cut.add(
+                PathBuilder::new()
+                    .move_to((0., 0.))
+                    .extend(
+                        foot.clone()
+                            .map(|point| (point.x(), point.y() + height - foot_height).into())
+                            .into_iter(),
+                    )
+                    .line_to((depth, 0.))
+                    .extend(
+                        short_joint
+                            .clone()
+                            .tenon()
+                            .map(|point| (point.x() + third_depth, point.y()).into())
+                            .into_iter()
+                            .rev(),
+                    )
+                    .close()
+                    .to_path(),
+            );
 
             GroupPair {
                 cut,
@@ -203,7 +246,10 @@ impl Project for BrainBox {
             }
         };
 
-        for (i, pair) in [top_bottom, front_back, cable_side].iter().enumerate() {
+        for (i, pair) in [top_bottom, front_back, cable_side, non_cable_side]
+            .iter()
+            .enumerate()
+        {
             let position = format!("translate({}, 0)", i as f32 * (width + inches(1.5)));
 
             let transform = match pair.cut.get_inner().get_attributes().get("transform") {
