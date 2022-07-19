@@ -91,12 +91,19 @@ impl Project for BrainBox {
             }
         };
 
+        let side_positions: Vec<f32> = {
+            let h = height - foot_height;
+            let steps = 9;
+            let step = h / steps as f32;
+            (0..steps - 1).map(|i| step + (i as f32 * step)).collect()
+        };
+
         let front_back = {
             let debug_g =
                 Group::new().add(Rectangle::new().set("width", width).set("height", height));
 
-            let w = width + (2. * overhang);
-            let mut g = Group::new().set("transform", format!("translate({}, {})", -overhang, 0.));
+            let w = width;
+            let mut g = Group::new();
 
             let bottom_tenon = long_joint
                 .clone()
@@ -106,32 +113,39 @@ impl Project for BrainBox {
                 // flip X
                 .map(|point| (-point.x() + fifth_width, point.y()).into());
 
+            let mut side_tenons = PathBuilder::new();
+            for y in side_positions.iter() {
+                side_tenons = side_tenons
+                    .line_to((w, *y))
+                    .line_to_r((w + t, *y), tenon_corner_radius)
+                    .line_to_r((w + t, y + inches(0.25)), tenon_corner_radius)
+                    .line_to((w, y + inches(0.25)));
+            }
+
             let half = PathBuilder::new()
                 // top
                 .extend(
                     long_joint
                         .clone()
                         .tenon()
-                        .map(|point| (overhang + (fifth_width * 3.) + point.x(), point.y()).into())
+                        .map(|point| ((fifth_width * 3.) + point.x(), point.y()).into())
                         .into_iter(),
                 )
                 .line_to((w, 0.))
                 // right
+                // side tenons
+                .extend(side_tenons.into_iter())
+                // foot tenon
+                .line_to((w, height - foot_height * 2. / 3.))
+                .line_to_r((w + t, height - foot_height * 2. / 3.), tenon_corner_radius)
+                .line_to_r((w + t, height - foot_height * 1. / 3.), tenon_corner_radius)
+                .line_to((w, height - foot_height * 1. / 3.))
+                // to bottom corner
                 .line_to((w, height))
                 // bottom
-                .line_to_r((w - t, height), tenon_corner_radius)
-                .line_to((w - t, height - foot_height / 2.))
-                .line_to((w - t - t, height - foot_height / 2.))
-                .line_to_r((w - t - t, height), tenon_corner_radius)
                 .extend(
                     bottom_tenon
-                        .map(|point| {
-                            (
-                                point.x() + overhang + (fifth_width * 3.),
-                                point.y() + height,
-                            )
-                                .into()
-                        })
+                        .map(|point| (point.x() + (fifth_width * 3.), point.y() + height).into())
                         .into_iter(),
                 )
                 .line_to((w / 2., height));
@@ -157,9 +171,6 @@ impl Project for BrainBox {
         let foot = {
             let footprint = foot_height;
             let half = PathBuilder::new()
-                .line_to((0., foot_height / 2.))
-                .line_to((-t, foot_height / 2.))
-                .line_to_r((-t, 0.), tenon_corner_radius)
                 .line_to_r((-overhang, 0.), corner_radius)
                 .line_to_r((-overhang - footprint, foot_height), corner_radius)
                 .line_to_r((-overhang - footprint, foot_height + t), corner_radius)
@@ -177,6 +188,9 @@ impl Project for BrainBox {
             );
             foot
         };
+        let foot_mortise = Rectangle::new()
+            .set("width", t)
+            .set("height", foot_height / 3.);
 
         let cable_side = {
             let debug_g = Group::new()
@@ -202,6 +216,15 @@ impl Project for BrainBox {
                     .to_path(),
             );
 
+            cut = cut.add(foot_mortise.clone().set(
+                "transform",
+                format!("translate({},{})", -t, foot_height / 3.),
+            ));
+            cut = cut.add(foot_mortise.clone().set(
+                "transform",
+                format!("translate({},{})", depth, foot_height / 3.),
+            ));
+
             GroupPair {
                 cut,
                 debug: debug_g,
@@ -221,13 +244,13 @@ impl Project for BrainBox {
 
             cut = cut.add(
                 PathBuilder::new()
-                    .move_to((0., 0.))
+                    .move_to((-overhang, 0.))
                     .extend(
                         foot.clone()
                             .map(|point| (point.x(), point.y() + height - foot_height).into())
                             .into_iter(),
                     )
-                    .line_to((depth, 0.))
+                    .line_to((depth + overhang, 0.))
                     .extend(
                         short_joint
                             .clone()
@@ -239,6 +262,30 @@ impl Project for BrainBox {
                     .close()
                     .to_path(),
             );
+
+            for y in side_positions {
+                let rect = Rectangle::new().set("width", t).set("height", inches(0.25));
+
+                cut = cut
+                    .add(
+                        rect.clone()
+                            .set("transform", format!("translate({},{})", -t, y)),
+                    )
+                    .add(
+                        rect.clone()
+                            .set("transform", format!("translate({},{})", depth, y)),
+                    )
+            }
+
+            cut = cut
+                .add(foot_mortise.clone().set(
+                    "transform",
+                    format!("translate({},{})", -t, height - foot_height * 2. / 3.),
+                ))
+                .add(foot_mortise.clone().set(
+                    "transform",
+                    format!("translate({},{})", depth, height - foot_height * 2. / 3.),
+                ));
 
             GroupPair {
                 cut,
